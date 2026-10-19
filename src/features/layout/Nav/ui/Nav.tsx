@@ -134,6 +134,16 @@ const Nav: React.FC<NavProps> = ({
         },
       ],
     },
+    {
+      items: [
+        {
+          label: "Paramètres",
+          icon: "gear",
+          path: "/parametres",
+          isActive: (p) => p === "/parametres",
+        },
+      ],
+    },
   ];
 
   const [isOpen, setIsOpen] = useState<boolean>(() => {

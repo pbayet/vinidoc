@@ -18,9 +18,10 @@
     transform: translate(-50%, -50%);
     width: 85%; // Ajuste la taille de l'image
     height: 85%;
-    background: url("../../assets/icon.png") no-repeat center;
+    background: url("../../../assets/icon.png") no-repeat center;
     background-size: contain; // L'image s'adapte sans déformation
     opacity: 0.1; // Effet estompé pour ne pas gêner le formulaire
+    filter: $logo-filter; // Emblème bleu foncé : éclairci en sombre
     z-index: 0;
   }
 }
@@ -84,6 +85,6 @@
 
   &:focus {
     border-color: $primary-color;
-    box-shadow: 0 0 5px rgba($primary-color, 0.5);
+    box-shadow: 0 0 5px with-alpha($primary-color, 0.5);
   }
 }

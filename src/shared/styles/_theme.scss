@@ -1,0 +1,16 @@
+/* src/shared/styles/_theme.scss
+   Variables CSS des thèmes clair et sombre (palettes dans _variables.scss).
+   Le thème sombre s'active via data-theme="dark" sur <html>, le même
+   attribut que celui attendu par les feuilles "style-dark" des @uvcdr/*. */
+
+@use "./variables" as *;
+
+:root {
+  @include theme-vars($theme-light);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  @include theme-vars($theme-dark);
+  color-scheme: dark;
+}

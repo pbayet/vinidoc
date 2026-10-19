@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vini-Doc</title>
+    <script>
+      // Applique le thème avant le premier rendu pour éviter un flash du
+      // thème clair. Logique miroir de src/shared/lib/theme/theme.ts.
+      (function () {
+        try {
+          var pref = localStorage.getItem("vinidoc-theme");
+          var dark =
+            pref === "dark" ||
+            (pref === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.setAttribute("data-theme", "dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

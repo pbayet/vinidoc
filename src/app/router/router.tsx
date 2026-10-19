@@ -6,6 +6,7 @@ import HomePage from "../../pages/HomePage";
 import OenologiePage from "../../pages/OenologiePage";
 import ValidationPage from "../../pages/ValidationPage";
 import ModelesPage from "../../pages/ModelesPage";
+import ParametresPage from "../../pages/ParametresPage";
 import NotFoundPage from "../../pages/NotFoundPage";
 
 /*
@@ -57,6 +58,12 @@ const RouterConfig: React.FC = () => {
         <Route path="/modeles/new" element={null} />
         <Route path="/modeles/:tplid" element={null} />
       </Route>
+
+      {/* Paramètres de l'utilisateur (thème) */}
+      <Route
+        path="/parametres"
+        element={<PrivateRoute component={ParametresPage} />}
+      />
 
       {/* Ancienne URL éventuelle */}
       <Route path="/fiches" element={<Navigate to="/oenologie" replace />} />

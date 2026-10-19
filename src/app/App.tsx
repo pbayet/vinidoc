@@ -6,6 +6,7 @@ import { forceCleanExpiredCache } from "../shared/lib/utils/cache.functions";
 import { getLocalStorageSize } from "../shared/lib/utils/storage.functions";
 import { DOMAIN, IS_PRODUCTION } from "./config";
 import { AuthProvider } from "@uvcdr/api-auth-system";
+import { UserThemeInitializer } from "./AppInitializers";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { VinidocProvider } from "../features/vinidoc/context/VinidocContext";
 import "../features/vinidoc/styles/vinidoc.scss";
@@ -28,6 +29,7 @@ const App: React.FC = () => {
         }
       }}
     >
+      <UserThemeInitializer />
       <WebSocketProvider>
         {/* Droits VINIDOC (œnologie / marketing / modèles), langues,
             couleurs et balises : chargés une fois pour toute l'application. */}

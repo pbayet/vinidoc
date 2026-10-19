@@ -16,7 +16,7 @@ $nav-transition: 0.25s ease;
   // Couleurs du volet exposées en variables CSS : tous les éléments enfants
   // (titres, items, avatar, bordures…) les lisent, ce qui permet de basculer
   // tout le thème d'un coup (cf. `.impersonating`).
-  --nav-bg: #{$primary-color};
+  --nav-bg: #{$nav-bg};
   --nav-fg: #{$text-color-light};
 
   background-color: var(--nav-bg);

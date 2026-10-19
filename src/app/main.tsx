@@ -7,10 +7,13 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons"; // Charge toutes les icônes Solid
 import { BrowserRouter } from "react-router-dom";
 import "@uvcdr/custom-form-system/dist/index.css";
+import "@uvcdr/custom-form-system/dist/index-dark.css";
 
 import { ModalProvider } from "@uvcdr/modal";
 import "@uvcdr/modal/styles.css";
+import "@uvcdr/modal/styles-dark.css";
 import "@uvcdr/confirm-notify-system/dist/index.css";
+import "@uvcdr/confirm-notify-system/dist/index-dark.css";
 
 import {
   API_URL,
@@ -30,9 +33,13 @@ import {
   NotifyStoreInitializer,
   ApiMessageInitializer,
 } from "./AppInitializers";
+import { initTheme } from "../shared/lib/theme/theme";
 
 // Ajoute toutes les icônes Solid dans la librairie
 library.add(fas);
+
+// Thème clair / sombre (préférence en cache localStorage, cf. theme.ts)
+initTheme();
 
 configureApiAuthSystem({
   apiUrl: API_URL,

@@ -1,74 +1,262 @@
+@use "sass:map";
+@use "sass:math";
+@use "sass:string";
+
 /* ==============================
-   Palette de couleurs basée sur tes couleurs fournies
+   Thème clair / sombre
+   ------------------------------
+   Les couleurs ne sont plus des valeurs Sass figées à la compilation mais
+   des variables CSS (--vinidoc-*), définies dans _theme.scss pour :root (clair)
+   et [data-theme="dark"] (sombre). Le même attribut data-theme="dark" sur
+   <html> pilote aussi le thème sombre des librairies @uvcdr/* (cf.
+   shared/lib/theme/theme.ts).
+
+   Les variables Sass ci-dessous gardent leurs noms historiques : les
+   feuilles de style existantes continuent de les utiliser telles quelles.
+   ⚠️ Comme ce sont désormais des var(), les fonctions de couleur Sass
+   (rgba($x, a), lighten(), darken()…) ne fonctionnent plus dessus :
+   utiliser with-alpha($x, a) et shade($x, %) à la place.
    ============================== */
 
-/* Couleurs principales */
-$primary-color: #145c7b; // Bleu foncé
-$primary-color-light: #4c8c9c; // Bleu clair intermédiaire
-$primary-color-dark: #2c748c; // Bleu foncé intense
+$theme-light: (
+  /* Couleurs principales */ "primary-color": #145c7b,
+  "primary-color-light": #4c8c9c,
+  "primary-color-dark": #2c748c,
+  "secondary-color": #3e6b83,
+  "secondary-color-light": #80aac4,
+  "secondary-color-dark": #698b9f,
 
-$secondary-color: #3e6b83; // Bleu-gris profond
-$secondary-color-light: #80aac4; // Bleu clair
-$secondary-color-dark: #698b9f; // Gris-bleu plus foncé
+  /* Backgrounds */ "background-color": #eaf1f5,
+  "background-color-dark": #c4d1d7,
+  "background-color-translucid": #eaf1f58c,
+  "background-color-dark-translucid": #c4d1d78c,
+  "card-bg": #ffffff,
+  "card-bg-dark": #dfdfdf,
+  "nav-bg": #145c7b,
+  // Élément de liste (DataList) posé sur le panneau latéral.
+  "list-item-bg": #ffffff,
+  "border-subtle": rgba(0, 0, 0, 0.06),
+  "border-soft": rgba(0, 0, 0, 0.12),
+  "overlay-bg": rgba(26, 26, 26, 0.55),
+  // Logo texte bleu foncé (png) : neutre en clair, éclairci en sombre.
+  "logo-filter": brightness(1),
+
+  /* Textes */ "text-color-light": #ffffff,
+  "text-color-dark": #424242,
+  "text-color-muted": #698b9f,
+  "text-color-error": #dc3545,
+  // Texte posé sur un fond pastel/vif (badges, colonnes) : reste sombre
+  // quel que soit le thème.
+  "text-color-on-light": #424242,
+  // Texte sur fond d'avertissement translucide.
+  "warning-text-color": #8a6700,
+
+  /* Blocs de code / JSON — fond sombre dans les deux thèmes */
+  "code-bg-color": #1f2b33,
+  "code-border-color": #33495a,
+  "code-text-color": #eef3f6,
+
+  /* États */ "success-color": #1b722f,
+  "success-color-light": #32d957,
+  "success-color-dark": #1e7e34,
+  "danger-color": #a5212e,
+  "danger-color-light": #e74c5e,
+  "danger-color-dark": #c82333,
+  "warning-color": #ffc107,
+  "warning-color-light": #ffdb58,
+  "warning-color-dark": #d39e00,
+  "info-color": #17a2b8,
+  "info-color-light": #2ccce4,
+  "info-color-dark": #117a8b,
+
+  /* Boutons */ "button-disabled-bg": #cccccc,
+  "button-disabled-text": #888888,
+  "border-color-loading": #96a1a5,
+
+  /* Ombres */ "shadow-color": rgba(0, 0, 0, 0.1),
+  "shadow-color-hover": rgba(0, 0, 0, 0.2),
+
+  /* Effets de chargement */ "loading-primary-a": #82b4c9,
+  "loading-primary-b": #4c84a4,
+  "loading-secondary-a": #cfcdcd,
+  "loading-secondary-b": #96a1a5
+);
+
+// Palette sombre alignée sur celle de @uvcdr/custom-form-system
+// (index-dark.css) pour que l'app et les composants partagés forment un tout.
+$theme-dark: (
+  "primary-color": #4fa8c7,
+  "primary-color-light": #2f7a93,
+  "primary-color-dark": #6bbedd,
+  "secondary-color": #93b0bd,
+  "secondary-color-light": #3a5866,
+  "secondary-color-dark": #5b7a89,
+
+  "background-color": #0f1c22,
+  "background-color-dark": #24363f,
+  "background-color-translucid": #0f1c228c,
+  "background-color-dark-translucid": #24363f8c,
+  "card-bg": #182830,
+  "card-bg-dark": #14232b,
+  "nav-bg": #12232b,
+  // Plus clair que la surface standard : l'élément doit ressortir
+  // nettement du panneau latéral, plus sombre.
+  "list-item-bg": #233a45,
+  "border-subtle": rgba(255, 255, 255, 0.08),
+  "border-soft": rgba(255, 255, 255, 0.16),
+  "overlay-bg": rgba(2, 6, 12, 0.65),
+  "logo-filter": brightness(0) invert(0.92),
+
+  "text-color-light": #ffffff,
+  "text-color-dark": #e7eef1,
+  "text-color-muted": #93b0bd,
+  "text-color-error": #e8636f,
+  "text-color-on-light": #1f2a30,
+  "warning-text-color": #f0c66a,
+
+  "code-bg-color": #0a1418,
+  "code-border-color": #24363f,
+  "code-text-color": #e7eef1,
+
+  "success-color": #3ecf72,
+  "success-color-light": #5fe08e,
+  "success-color-dark": #34b563,
+  "danger-color": #e8636f,
+  "danger-color-light": #ef7d87,
+  "danger-color-dark": #e8636f,
+  "warning-color": #e8b74a,
+  "warning-color-light": #f0c66a,
+  "warning-color-dark": #e8b74a,
+  "info-color": #38bdd2,
+  "info-color-light": #5fd3e6,
+  "info-color-dark": #38bdd2,
+
+  "button-disabled-bg": #2a3a42,
+  "button-disabled-text": #5b7480,
+  "border-color-loading": #3a4a52,
+
+  "shadow-color": rgba(0, 0, 0, 0.35),
+  "shadow-color-hover": rgba(0, 0, 0, 0.5),
+
+  "loading-primary-a": #2a4a58,
+  "loading-primary-b": #1c3541,
+  "loading-secondary-a": #2a323a,
+  "loading-secondary-b": #1c232a
+);
+
+// Émet les variables CSS d'une palette (utilisé par _theme.scss).
+@mixin theme-vars($theme) {
+  @each $name, $value in $theme {
+    --vinidoc-#{$name}: #{$value};
+  }
+}
+
+@function token($name) {
+  @if not map.has-key($theme-light, $name) {
+    @error "Jeton de thème inconnu : #{$name}";
+  }
+  @return var(--vinidoc-#{$name});
+}
+
+// Remplace rgba($couleur, $alpha) pour une couleur issue d'une var() CSS.
+@function with-alpha($color, $alpha) {
+  @return string.unquote(
+    "color-mix(in srgb, #{$color} #{math.percentage($alpha)}, transparent)"
+  );
+}
+
+// Remplace darken($couleur, $quantité) pour une couleur issue d'une var() CSS.
+@function shade($color, $amount) {
+  @return string.unquote(
+    "color-mix(in srgb, #{$color}, black #{$amount})"
+  );
+}
+
+/* Couleur de marque fixe (logo), indépendante du thème */
+$brand-color: #145c7b;
+
+/* Couleurs principales */
+$primary-color: token("primary-color");
+$primary-color-light: token("primary-color-light");
+$primary-color-dark: token("primary-color-dark");
+
+$secondary-color: token("secondary-color");
+$secondary-color-light: token("secondary-color-light");
+$secondary-color-dark: token("secondary-color-dark");
 
 /* Backgrounds */
-$background-color: #eaf1f5; // Bleu pastel très clair
-$background-color-dark: #c4d1d7; // Gris bleuté foncé
+$background-color: token("background-color");
+$background-color-dark: token("background-color-dark");
 
-$background-color-translucid: #eaf1f58c; // Bleu pastel très clair
-$background-color-dark-translucid: #c4d1d78c; // Gris bleuté foncé
+$background-color-translucid: token("background-color-translucid");
+$background-color-dark-translucid: token("background-color-dark-translucid");
 
-$card-bg: #ffffff;
-$card-bg-dark: #dfdfdf;
+$card-bg: token("card-bg");
+$card-bg-dark: token("card-bg-dark");
 $header-bg: $primary-color;
 $footer-bg: $secondary-color-dark;
+$nav-bg: token("nav-bg");
+$list-item-bg: token("list-item-bg");
+
+/* Bordures fines / voiles */
+$border-subtle: token("border-subtle");
+$border-soft: token("border-soft");
+$overlay-bg: token("overlay-bg");
+$logo-filter: token("logo-filter");
 
 /* Textes */
-$text-color-light: #ffffff;
-$text-color-dark: #424242;
-$text-color-muted: #698b9f;
-$text-color-error: #dc3545;
+$text-color-light: token("text-color-light");
+$text-color-dark: token("text-color-dark");
+$text-color-muted: token("text-color-muted");
+$text-color-error: token("text-color-error");
+$text-color-on-light: token("text-color-on-light");
+$warning-text-color: token("warning-text-color");
+
+/* Blocs de code / JSON (paramètres d'activité) */
+$code-bg-color: token("code-bg-color");
+$code-border-color: token("code-border-color");
+$code-text-color: token("code-text-color");
 
 /* Couleurs pour les états */
-$success-color: #1b722f;
-$success-color-light: #32d957;
-$success-color-dark: #1e7e34;
+$success-color: token("success-color");
+$success-color-light: token("success-color-light");
+$success-color-dark: token("success-color-dark");
 
-$danger-color: #a5212e;
-$danger-color-light: #e74c5e;
-$danger-color-dark: #c82333;
+$danger-color: token("danger-color");
+$danger-color-light: token("danger-color-light");
+$danger-color-dark: token("danger-color-dark");
 
-$warning-color: #ffc107;
-$warning-color-light: #ffdb58;
-$warning-color-dark: #d39e00;
+$warning-color: token("warning-color");
+$warning-color-light: token("warning-color-light");
+$warning-color-dark: token("warning-color-dark");
 
-$info-color: #17a2b8;
-$info-color-light: #2ccce4;
-$info-color-dark: #117a8b;
+$info-color: token("info-color");
+$info-color-light: token("info-color-light");
+$info-color-dark: token("info-color-dark");
 
 /* Boutons */
 $button-bg: $primary-color-dark;
 $button-hover-bg: $primary-color-light;
 $button-border: 2px solid $primary-color;
 $button-text-color: $text-color-light;
-$button-disabled-bg: #cccccc;
-$button-disabled-text: #888888;
+$button-disabled-bg: token("button-disabled-bg");
+$button-disabled-text: token("button-disabled-text");
 
 /* Bordures & Ombres */
 $border-radius: 8px;
 $border-radius-small: 4px;
 $border-radius-large: 16px;
 
-$border-color-loading: #96a1a5;
+$border-color-loading: token("border-color-loading");
 
-$box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+$box-shadow: 2px 2px 10px token("shadow-color");
 $box-shadow-full:
   rgba(0, 0, 0, 0.25) 0px 54px 55px,
   rgba(0, 0, 0, 0.12) 0px -12px 30px,
   rgba(0, 0, 0, 0.12) 0px 4px 6px,
   rgba(0, 0, 0, 0.17) 0px 12px 13px,
   rgba(0, 0, 0, 0.09) 0px -3px 5px;
-$box-shadow-hover: 4px 4px 15px rgba(0, 0, 0, 0.2);
+$box-shadow-hover: 4px 4px 15px token("shadow-color-hover");
 
 /* Espacements */
 $padding-small: 0.5rem;
@@ -88,61 +276,46 @@ $font-size-medium: 1rem;
 $font-size-large: 1.25rem;
 $font-size-xl: 1.5rem;
 
-/* Mode sombre */
-$dark-mode-bg: #1a1a1a;
-$dark-mode-text: #e0e0e0;
-$dark-mode-card-bg: #242424;
-
 /* Dégradés */
-
-/* Variantes primary */
 $gradient-primary: linear-gradient(45deg, $primary-color, $primary-color-light);
-
 $gradient-primary-soft: linear-gradient(
   45deg,
   $primary-color-light,
   $background-color
 );
-
 $gradient-primary-strong: linear-gradient(
   45deg,
   $primary-color-dark,
   $primary-color
 );
 
-/* Variantes secondary */
 $gradient-secondary: linear-gradient(
   45deg,
   $secondary-color,
   $secondary-color-light
 );
-
 $gradient-secondary-soft: linear-gradient(
   45deg,
   $secondary-color-light,
   $background-color
 );
-
 $gradient-secondary-strong: linear-gradient(
   45deg,
   $secondary-color-dark,
   $secondary-color
 );
 
-/* Backgrounds subtils */
 $gradient-background-light: linear-gradient(
   180deg,
   $background-color,
   $background-color-dark
 );
-
 $gradient-background-overlay: linear-gradient(
   180deg,
   $background-color-translucid,
   $background-color-dark-translucid
 );
 
-/* États */
 $gradient-success: linear-gradient(45deg, $success-color, $success-color-light);
 $gradient-success-soft: linear-gradient(
   45deg,
@@ -187,31 +360,20 @@ $gradient-info: linear-gradient(45deg, $info-color, $info-color-light);
 $gradient-info-soft: linear-gradient(45deg, $info-color-light, $info-color);
 $gradient-info-strong: linear-gradient(45deg, $info-color-dark, $info-color);
 
-/* Cards / UI */
 $gradient-card-hover: linear-gradient(45deg, $card-bg, $background-color);
-
 $gradient-button-hover: linear-gradient(45deg, $button-bg, $button-hover-bg);
-
-/* Dark mode */
-$gradient-dark-surface: linear-gradient(
-  180deg,
-  $dark-mode-card-bg,
-  $dark-mode-bg
-);
 
 /* Effets de chargement */
 $loading-primary: linear-gradient(
   120deg,
-  #82b4c9 25%,
-  #4c84a4 50%,
-  #82b4c9 75%
+  token("loading-primary-a") 25%,
+  token("loading-primary-b") 50%,
+  token("loading-primary-a") 75%
 );
 
 $loading-secondary: linear-gradient(
   120deg,
-  #cfcdcd 25%,
-  // Gris clair
-  #96a1a5 50%,
-  // Bleu gris pastel
-  #cfcdcd 75% // Gris clair
+  token("loading-secondary-a") 25%,
+  token("loading-secondary-b") 50%,
+  token("loading-secondary-a") 75%
 );

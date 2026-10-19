@@ -45,21 +45,15 @@ src/entities/vinidoc/          types de l'API
 src/features/vinidoc/
   api/useVinidocApi.ts         client /vinidoc (token injecté, data renvoyée)
   context/VinidocContext.tsx   droits, langues, couleurs, balises, compteur "à valider"
+  generation/                  formulaire de génération, aperçu, historique
+  import/                      import CSV de fiches
   sheets/                      liste, éditeur de fiche (caractéristiques, textes, contrôle, versions)
-  templates/                   import, catalogue des balises
-  ui/                          composants (statut, échelle 1-5, compteur, cépages, historique…)
+  templates/                   import, réglage et catalogue des balises
+  ui/                          composants (statut, échelle 1-5, compteur, historique…)
   styles/vinidoc.scss          styles (préfixe vd-)
-src/pages/                     HomePage (génération), OenologiePage, SheetPage, ValidationPage, ModelesPage, ModelePage
+src/pages/                     HomePage (génération), OenologiePage, ValidationPage, ModelesPage,
+                               ParametresPage, LoginPage, NotFoundPage
 ```
-
----|---|---|
-| Œnologue | `/oenologie` — Données œnologiques | Saisit et met à jour les données techniques et œnologiques des vins |
-| Administrateur | `/modeles` — Modèles PowerPoint | Dépose et gère les modèles `.pptx` et leurs balises de fusion |
-| Marketing | `/` — Fiches techniques (accueil) | Choisit un vin et un modèle, puis génère la fiche technique |
-
-Les pages d'administration (`/oenologie`, `/modeles`) sont réservées aux profils
-`CAN_MODIFY` (cf. `VITE_MODIFY_PERMS`) : liens masqués dans la Nav et accès direct
-par URL redirigé vers l'accueil (`requireModify` sur `PrivateRoute`).
 
 ---
 
@@ -68,34 +62,51 @@ par URL redirigé vers l'accueil (`requireModify` sur `PrivateRoute`).
 | Outil | Version |
 |---|---|
 | React | 19 |
-| TypeScript | 5.7 |
-| Vite | 6 |
+| TypeScript | 6.0 |
+| Vite | 8 (SWC) |
 | React Router | 7 |
-| SCSS (modules) | via sass |
-| UI | `@uvcdr/custom-form-system` |
-| Icônes | FontAwesome Solid + Lucide |
-| Tests | Vitest + Testing Library |
+| SCSS | sass, variables injectées automatiquement par Vite |
+| UI | `@uvcdr/custom-form-system` 0.2.0, `@uvcdr/modal`, `@uvcdr/confirm-notify-system` |
+| Auth / API | `@uvcdr/api-auth-system` |
+| Icônes | FontAwesome 7 (Solid) |
 
 ---
 
 ## Prérequis
 
-- Node.js ≥ 20
-- Accès au package local `@uvcdr/custom-form-system` (chemin : `../../custom-form-system/`)
+- Node.js 20.19+ (LTS recommandé, requis par Vite 8)
+- npm 12+ (prise en compte de `.npmrc` / `allowScripts`)
+
+Les paquets internes `@uvcdr/*` sont installés depuis
+`https://dev.union-vignerons.com/npm/uvcdr/<paquet>/<version>` ; le fichier
+`.npmrc` (`allow-remote=root`) autorise ces URLs avec npm 12+.
 
 ---
 
-## Installation
+## Installation et scripts
 
 ```bash
 npm install
+npm run dev
 ```
+
+| Commande | Description |
+|---|---|
+| `npm run dev` | Serveur de dev (`.env.development`), `http://localhost:5173/vinidoc/` |
+| `npm run build` | Build de production (`.env.production`) |
+| `npm run build:test` | Build de test (`.env.test`) |
+| `npm run preview` | Prévisualiser le build |
+| `npm run lint` | Linter ESLint |
+| `npm run reload:node-modules` | Supprime `node_modules` + `package-lock.json` et réinstalle |
+
+> Les builds exécutent `tsc -b && vite build`. `.claude/launch.json` lance le serveur de dev sur le port 5178.
 
 ---
 
 ## Variables d'environnement
 
-Chaque fichier `.env.*` correspond à un mode de build.
+Chaque fichier `.env.*` correspond à un mode de build. Ils ne sont pas versionnés,
+sauf le modèle `.env.exemple`.
 
 | Variable | Description |
 |---|---|
@@ -106,33 +117,10 @@ Chaque fichier `.env.*` correspond à un mode de build.
 | `VITE_APP_NAME` | Nom court de l'application (`VINIDOC`) |
 | `VITE_APP_CODE` | Code court (`VINDOC`) |
 | `VITE_LS_JWT` | Préfixe de la clé cookie JWT |
-| `VITE_DOMAIN` | Domaine racine (utilisé pour les redirections auth) |
+| `VITE_DOMAIN` | Domaine racine (redirection vers le portail en production) |
+| `VITE_LOCAL_DOMAIN` | Domaine de l'API locale |
 | `VITE_MODIFY_PERMS` | Permissions autorisées à modifier (ex: `DEV,SUPERADMIN,ADMIN`) |
 | `VITE_PRODUCTION` | `1` en production, `0` sinon |
-
----
-
-## Scripts
-
-```bash
-# Développement
-npm run dev
-
-# Développement en mode admin
-npm run dev:admin
-
-# Build production
-npm run build
-
-# Build test
-npm run build:test
-
-# Lint
-npm run lint
-
-# Prévisualisation du build
-npm run preview
-```
 
 ---
 
@@ -144,71 +132,63 @@ src/
 │   ├── api/              # Couche HTTP (apiRequest, apiRequestAll, websocket, hooks)
 │   ├── context/          # WebSocketContext
 │   ├── router/           # router.tsx — déclaration des routes
-│   ├── App.tsx           # AuthProvider + WebSocketProvider + Router
-│   ├── AppInitializers.tsx
+│   ├── App.tsx           # AuthProvider + WebSocketProvider + VinidocProvider + Router
+│   ├── AppInitializers.tsx  # stores confirm/notify, messages API, thème utilisateur
 │   ├── config.ts         # Variables d'env exportées
-│   └── main.tsx          # Point d'entrée
+│   └── main.tsx          # Point d'entrée (providers, styles @uvcdr clair + sombre)
 │
-├── entities/
-│   ├── attachment/       # Attachment (fichiers)
-│   ├── auth/             # JWTPayload, User, Permission, …
-│   └── application.class.ts  # VersionClass, VersionDetailClass
-│
+├── entities/             # application/versions, attachment, auth, vinidoc
 ├── features/
-│   ├── auth/             # PrivateRoute (+ requireModify)
-│   ├── home/             # (réservé) logique de la page d'accueil
+│   ├── auth/             # PrivateRoute (+ requireRight)
 │   ├── layout/
-│   │   ├── Header/       # Header (non affiché)
 │   │   ├── hooks/        # useAppVersion
 │   │   └── Nav/          # Sidebar + modales (version, utilisateur, application)
-│   └── notFound/
+│   ├── notFound/
+│   └── vinidoc/          # cf. section Code
 │
-├── pages/
-│   ├── HomePage.tsx      # /           Fiches techniques (marketing)
-│   ├── OenologiePage.tsx # /oenologie  Données œnologiques (œnologue)
-│   ├── ModelesPage.tsx   # /modeles    Modèles PowerPoint
-│   ├── LoginPage.tsx     # /login      (hors production)
-│   └── NotFoundPage.tsx
-│
+├── pages/                # cf. section Code
 └── shared/
     ├── lib/
-    │   ├── hooks/        # useStableLoading, useWebSocket
+    │   ├── hooks/        # useWebSocket
+    │   ├── theme/        # theme.ts (application du thème), userTheme.ts (préférence en base)
     │   ├── types/        # Types globaux (deep-diff, etc.)
     │   └── utils/        # Fonctions utilitaires (date, cache, storage, …)
-    ├── styles/           # Variables SCSS globales
-    └── ui/               # Composants UI partagés (ObjectTable, PageLayout, SectionCard, …)
+    ├── styles/           # _variables.scss (palettes + tokens), _theme.scss, global.scss
+    └── ui/               # PageLayout, SectionCard, ThemePicker
 ```
+
+---
+
+## Thème clair / sombre
+
+- Thème appliqué par l'attribut `data-theme="dark"` sur `<html>`, le même que
+  celui attendu par les feuilles « -dark » des paquets `@uvcdr/*`.
+- Couleurs en variables CSS `--vinidoc-*` (palettes `$theme-light` / `$theme-dark`
+  dans `_variables.scss`, émises par `_theme.scss`). Les variables Sass gardent
+  leurs noms historiques ; comme ce sont des `var()`, utiliser `with-alpha()` et
+  `shade()` au lieu de `rgba()` / `darken()`.
+- Préférence enregistrée en base par utilisateur (`usersmanager/theme`,
+  `APPCOD=VINDOC`), choisie dans **Paramètres** (`/parametres`) : Par défaut
+  (thème par défaut de l'utilisateur, défini dans le portail), Clair, Sombre ou
+  Système. Elle est mise en cache dans `localStorage` (`vinidoc-theme`) pour le
+  script anti-flash de `index.html`.
 
 ---
 
 ## Authentification
 
-L'auth repose sur un **JWT stocké en cookie** (clé : `${VITE_LS_JWT}-${VITE_APP_CODE}`).
+L'auth repose sur `@uvcdr/api-auth-system` (JWT stocké en cookie, clé
+`${VITE_LS_JWT}-${VITE_APP_CODE}`) :
 
-- `AuthContext` vérifie le token au montage via `GET /auth/verify`.
+- `AuthProvider` vérifie le token au montage via `GET /auth/verify`.
 - `PrivateRoute` consomme `useAuth()` — aucun appel réseau supplémentaire.
-- En production, une déconnexion redirige vers `${VITE_DOMAIN}/login`.
+- En production, une déconnexion redirige vers le portail (`${VITE_DOMAIN}/home`).
 - En développement, la redirection se fait vers `/login` en interne.
 
 ---
 
-## Couche API
+## Déploiement
 
-`apiRequest` et `apiRequestAll` (dans `src/app/api/api.tsx`) gèrent :
-
-- JSON et multipart (fichiers)
-- Confirmation avant requête (`confirms`)
-- Gestion centralisée des erreurs (toast automatique)
-- `setLoading`, `onStart`, `onSuccess`, `onError`, `onFinally`
-- Upload de fichiers post-requête (`fileUploads`)
-
----
-
-## Créer une nouvelle application depuis cette base
-
-1. Copier ce dossier dans un nouveau répertoire.
-2. Mettre à jour `package.json` : `name`, `version`.
-3. Mettre à jour les fichiers `.env.*` : `VITE_APP_BASE`, `VITE_APP_NAME`, `VITE_APP_CODE`, URLs.
-4. Adapter les entrées de navigation dans `src/features/layout/Nav/ui/Nav.tsx`.
-5. Ajouter les routes dans `src/app/router/router.tsx` (lu aussi par `postbuild.js` via `extractRoutes.js`).
-6. Lancer `npm install` puis `npm run dev`.
+Déployer le contenu de `dist/` sous `/vinidoc/`. Le serveur web doit renvoyer
+`index.html` pour toutes les routes de l'application (fallback SPA : l'ancienne
+étape `postbuild` qui dupliquait `index.html` par route a été supprimée).

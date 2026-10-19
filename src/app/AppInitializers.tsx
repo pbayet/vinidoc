@@ -17,6 +17,7 @@ import {
 } from "@uvcdr/api-auth-system";
 import { useConfirm, useNotification } from "@uvcdr/confirm-notify-system";
 import { useApiMessage } from "./api/hooks/useApiMessage";
+import { useUserThemeSync } from "../shared/lib/theme/userTheme";
 
 export function ConfirmStoreInitializer() {
   const { confirm } = useConfirm();
@@ -47,5 +48,15 @@ export function ApiMessageInitializer() {
     setApiMessageHandler(showApiMessage);
     return () => clearApiMessageHandler();
   }, [showApiMessage]);
+  return null;
+}
+
+/**
+ * Charge le thème de l'utilisateur connecté (usersmanager/theme) et le
+ * réapplique à chaque changement d'utilisateur. À monter sous l'AuthProvider
+ * (cf. App.tsx).
+ */
+export function UserThemeInitializer() {
+  useUserThemeSync();
   return null;
 }

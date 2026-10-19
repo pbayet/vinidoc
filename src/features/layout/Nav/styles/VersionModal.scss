@@ -5,23 +5,23 @@
 $change-colors: (
   "added": (
     $success-color,
-    rgba($success-color, 0.08),
+    with-alpha($success-color, 0.08),
   ),
   "updated": (
     $info-color-dark,
-    rgba($info-color-dark, 0.08),
+    with-alpha($info-color-dark, 0.08),
   ),
   "fix": (
     $success-color-dark,
-    rgba($success-color-dark, 0.08),
+    with-alpha($success-color-dark, 0.08),
   ),
   "remove": (
     $danger-color-dark,
-    rgba($danger-color-dark, 0.08),
+    with-alpha($danger-color-dark, 0.08),
   ),
   "refactor": (
     $secondary-color,
-    rgba($secondary-color, 0.08),
+    with-alpha($secondary-color, 0.08),
   ),
 );
 

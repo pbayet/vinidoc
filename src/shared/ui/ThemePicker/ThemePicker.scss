@@ -1,0 +1,11 @@
+.theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $margin-small;
+  padding: 12px 0;
+
+  &--compact {
+    gap: 4px;
+    padding: 0;
+  }
+}
