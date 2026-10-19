@@ -6,6 +6,16 @@ import { Application } from "../../../../entities/auth/user/Application.class";
 import { setCookie } from "../../../../shared/lib/utils/storage.functions";
 
 /**
+ * Enregistre le token décoré reçu de `auth/app` dans le cookie de l'appli
+ * cible — équivalent du `setTokenWithNewApp` du portail, appliqué au format
+ * de cookie de `@uvcdr/api-auth-system` (`<LS_JWT>-<appcode>`, chemin `/`).
+ */
+export const saveTokenForApp = (token: string, appCode: string) => {
+  const cookieName = `${LS_JWT}-${appCode.replace(/\s+/g, "-").toLocaleLowerCase()}`;
+  setCookie(cookieName, token, 7);
+};
+
+/**
  * Liste + bascule vers une autre application du portail (accessible à tout
  * utilisateur authentifié, pas seulement aux admins — contrairement au
  * changement d'utilisateur).
@@ -49,14 +59,6 @@ export function useAppSwitcher() {
       },
     });
   }, [jwtPayload]);
-
-  // Sauvegarde le token décoré reçu de `auth/app` dans le cookie de l'appli
-  // cible — équivalent du `setTokenWithNewApp` du portail, appliqué ici au
-  // format de cookie déjà utilisé par `@uvcdr/api-auth-system`.
-  const saveTokenForApp = (token: string, appCode: string) => {
-    const cookieName = `${LS_JWT}-${appCode.replace(/\s+/g, "-").toLocaleLowerCase()}`;
-    setCookie(cookieName, token, 7);
-  };
 
   const switchApp = useCallback(
     (app: Application) => {
