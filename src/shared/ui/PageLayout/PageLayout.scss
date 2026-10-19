@@ -1,0 +1,77 @@
+.page-layout {
+  // Remplit tout l'espace restant dans .body (flex-parent)
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  // Colonne : header figé + contenu scrollable
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // ─── Header sticky ────────────────────────────────────────────────────────
+
+  &__header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $margin-medium;
+
+    padding: $padding-medium $padding-medium $padding-small;
+
+    // Séparateur visuel discret en bas du header
+    border-bottom: 1px solid $background-color-dark;
+    background-color: $background-color;
+
+    // Ombre légère pour accentuer l'effet "sticky"
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    // z-index pour passer au-dessus du contenu scrollé
+    position: relative;
+    z-index: 10;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: $font-size-xl;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: $secondary-color;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+    flex-shrink: 0;
+  }
+
+  // ─── Zone de contenu scrollable ───────────────────────────────────────────
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: $padding-medium;
+    position: relative;
+  }
+
+  // ─── Bouton scroll-to-top ─────────────────────────────────────────────────
+
+  &__scroll-top {
+    position: fixed;
+    bottom: $margin-medium;
+    right: $margin-medium;
+    z-index: 100;
+
+    opacity: 0.9;
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

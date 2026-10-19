@@ -1,0 +1,106 @@
+// Grille responsive de cartes (à utiliser comme conteneur de SectionCard)
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: $margin-medium;
+  align-items: start;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.section-card {
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  padding: $padding-medium;
+  display: flex;
+  flex-direction: column;
+  gap: $margin-small;
+  min-width: 0;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $margin-small;
+  }
+
+  &__title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+    color: $secondary-color;
+    font-weight: 700;
+  }
+
+  &__icon,
+  &__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: $background-color;
+    color: $primary-color;
+    font-size: 0.85rem;
+  }
+
+  &__step {
+    background-color: $primary-color;
+    color: $text-color-light;
+    font-weight: 700;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+  }
+
+  &__description {
+    margin: 0;
+    color: $text-color-muted;
+    font-size: 0.9rem;
+  }
+
+  &__body {
+    color: $text-color-dark;
+  }
+}
+
+// Zone "à venir" : contenu à brancher ultérieurement
+.section-placeholder {
+  border: 2px dashed $background-color-dark;
+  border-radius: $border-radius-small;
+  padding: $padding-medium;
+  color: $text-color-muted;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+// Liste de champs prévus (tags)
+.field-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    background-color: $background-color;
+    color: $secondary-color;
+    border-radius: $border-radius-small;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  code {
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,217 @@
+/* ==============================
+   Palette de couleurs basée sur tes couleurs fournies
+   ============================== */
+
+/* Couleurs principales */
+$primary-color: #145c7b; // Bleu foncé
+$primary-color-light: #4c8c9c; // Bleu clair intermédiaire
+$primary-color-dark: #2c748c; // Bleu foncé intense
+
+$secondary-color: #3e6b83; // Bleu-gris profond
+$secondary-color-light: #80aac4; // Bleu clair
+$secondary-color-dark: #698b9f; // Gris-bleu plus foncé
+
+/* Backgrounds */
+$background-color: #eaf1f5; // Bleu pastel très clair
+$background-color-dark: #c4d1d7; // Gris bleuté foncé
+
+$background-color-translucid: #eaf1f58c; // Bleu pastel très clair
+$background-color-dark-translucid: #c4d1d78c; // Gris bleuté foncé
+
+$card-bg: #ffffff;
+$card-bg-dark: #dfdfdf;
+$header-bg: $primary-color;
+$footer-bg: $secondary-color-dark;
+
+/* Textes */
+$text-color-light: #ffffff;
+$text-color-dark: #424242;
+$text-color-muted: #698b9f;
+$text-color-error: #dc3545;
+
+/* Couleurs pour les états */
+$success-color: #1b722f;
+$success-color-light: #32d957;
+$success-color-dark: #1e7e34;
+
+$danger-color: #a5212e;
+$danger-color-light: #e74c5e;
+$danger-color-dark: #c82333;
+
+$warning-color: #ffc107;
+$warning-color-light: #ffdb58;
+$warning-color-dark: #d39e00;
+
+$info-color: #17a2b8;
+$info-color-light: #2ccce4;
+$info-color-dark: #117a8b;
+
+/* Boutons */
+$button-bg: $primary-color-dark;
+$button-hover-bg: $primary-color-light;
+$button-border: 2px solid $primary-color;
+$button-text-color: $text-color-light;
+$button-disabled-bg: #cccccc;
+$button-disabled-text: #888888;
+
+/* Bordures & Ombres */
+$border-radius: 8px;
+$border-radius-small: 4px;
+$border-radius-large: 16px;
+
+$border-color-loading: #96a1a5;
+
+$box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+$box-shadow-full:
+  rgba(0, 0, 0, 0.25) 0px 54px 55px,
+  rgba(0, 0, 0, 0.12) 0px -12px 30px,
+  rgba(0, 0, 0, 0.12) 0px 4px 6px,
+  rgba(0, 0, 0, 0.17) 0px 12px 13px,
+  rgba(0, 0, 0, 0.09) 0px -3px 5px;
+$box-shadow-hover: 4px 4px 15px rgba(0, 0, 0, 0.2);
+
+/* Espacements */
+$padding-small: 0.5rem;
+$padding-medium: 1rem;
+$padding-large: 1.5rem;
+$padding-extra-large: 2rem;
+
+$margin-small: 0.5rem;
+$margin-medium: 1rem;
+$margin-large: 1.5rem;
+$margin-extra-large: 2rem;
+
+/* Typographie */
+$font-size-xs: 0.75rem;
+$font-size-small: 0.85rem;
+$font-size-medium: 1rem;
+$font-size-large: 1.25rem;
+$font-size-xl: 1.5rem;
+
+/* Mode sombre */
+$dark-mode-bg: #1a1a1a;
+$dark-mode-text: #e0e0e0;
+$dark-mode-card-bg: #242424;
+
+/* Dégradés */
+
+/* Variantes primary */
+$gradient-primary: linear-gradient(45deg, $primary-color, $primary-color-light);
+
+$gradient-primary-soft: linear-gradient(
+  45deg,
+  $primary-color-light,
+  $background-color
+);
+
+$gradient-primary-strong: linear-gradient(
+  45deg,
+  $primary-color-dark,
+  $primary-color
+);
+
+/* Variantes secondary */
+$gradient-secondary: linear-gradient(
+  45deg,
+  $secondary-color,
+  $secondary-color-light
+);
+
+$gradient-secondary-soft: linear-gradient(
+  45deg,
+  $secondary-color-light,
+  $background-color
+);
+
+$gradient-secondary-strong: linear-gradient(
+  45deg,
+  $secondary-color-dark,
+  $secondary-color
+);
+
+/* Backgrounds subtils */
+$gradient-background-light: linear-gradient(
+  180deg,
+  $background-color,
+  $background-color-dark
+);
+
+$gradient-background-overlay: linear-gradient(
+  180deg,
+  $background-color-translucid,
+  $background-color-dark-translucid
+);
+
+/* États */
+$gradient-success: linear-gradient(45deg, $success-color, $success-color-light);
+$gradient-success-soft: linear-gradient(
+  45deg,
+  $success-color,
+  $success-color-light
+);
+$gradient-success-strong: linear-gradient(
+  45deg,
+  $success-color-dark,
+  $success-color
+);
+
+$gradient-danger: linear-gradient(45deg, $danger-color, $danger-color-light);
+$gradient-danger-soft: linear-gradient(
+  45deg,
+  $danger-color,
+  $danger-color-light
+);
+$gradient-danger-strong: linear-gradient(
+  45deg,
+  $danger-color-dark,
+  $danger-color
+);
+
+$gradient-warning: linear-gradient(
+  45deg,
+  $warning-color-dark,
+  $warning-color-light
+);
+$gradient-warning-soft: linear-gradient(
+  45deg,
+  $warning-color-light,
+  $warning-color-dark
+);
+$gradient-warning-strong: linear-gradient(
+  45deg,
+  $warning-color-dark,
+  $warning-color
+);
+
+$gradient-info: linear-gradient(45deg, $info-color, $info-color-light);
+$gradient-info-soft: linear-gradient(45deg, $info-color-light, $info-color);
+$gradient-info-strong: linear-gradient(45deg, $info-color-dark, $info-color);
+
+/* Cards / UI */
+$gradient-card-hover: linear-gradient(45deg, $card-bg, $background-color);
+
+$gradient-button-hover: linear-gradient(45deg, $button-bg, $button-hover-bg);
+
+/* Dark mode */
+$gradient-dark-surface: linear-gradient(
+  180deg,
+  $dark-mode-card-bg,
+  $dark-mode-bg
+);
+
+/* Effets de chargement */
+$loading-primary: linear-gradient(
+  120deg,
+  #82b4c9 25%,
+  #4c84a4 50%,
+  #82b4c9 75%
+);
+
+$loading-secondary: linear-gradient(
+  120deg,
+  #cfcdcd 25%,
+  // Gris clair
+  #96a1a5 50%,
+  // Bleu gris pastel
+  #cfcdcd 75% // Gris clair
+);

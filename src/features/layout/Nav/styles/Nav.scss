@@ -1,0 +1,472 @@
+$nav-width-open: 220px;
+$nav-width-closed: 52px;
+$nav-transition: 0.25s ease;
+
+// Police du nom "Union des vignerons des Côtes du Rhône" recréé en HTML
+// (cf. .nav-sidebar__footer-logo-text) : serif à forts contrastes, proche
+// de celle du logo (UvcdrLogoTxt.png), plus lisible en petite taille que
+// l'image d'origine.
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&display=swap");
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+.nav-sidebar {
+  flex-shrink: 0;
+  width: $nav-width-open;
+  height: 100vh;
+  // Couleurs du volet exposées en variables CSS : tous les éléments enfants
+  // (titres, items, avatar, bordures…) les lisent, ce qui permet de basculer
+  // tout le thème d'un coup (cf. `.impersonating`).
+  --nav-bg: #{$primary-color};
+  --nav-fg: #{$text-color-light};
+
+  background-color: var(--nav-bg);
+  color: var(--nav-fg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition:
+    width $nav-transition,
+    background-color $nav-transition,
+    color $nav-transition;
+
+  &.closed {
+    width: $nav-width-closed;
+  }
+
+  // Connexion "en tant que" un autre utilisateur : thème inversé (fond clair,
+  // texte bleu) pour signaler visuellement que l'on n'est pas sur son compte.
+  &.impersonating {
+    --nav-bg: #{$background-color-dark};
+    --nav-fg: #{$primary-color};
+  }
+}
+
+// ─── En-tête : titre/icône + bouton toggle ───────────────────────────────────
+.nav-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $margin-small;
+  padding: $padding-small;
+  border-bottom: 1px solid color-mix(in srgb, var(--nav-fg) 10%, transparent);
+  min-height: 40px;
+  max-height: 40px;
+}
+
+.nav-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: $margin-small;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--nav-fg);
+  opacity: 1;
+  max-width: 160px;
+  transition:
+    opacity $nav-transition,
+    max-width $nav-transition;
+
+  .nav-sidebar.closed & {
+    opacity: 0;
+    max-width: 0;
+  }
+}
+
+.nav-sidebar__brand-icon {
+  flex-shrink: 0;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-medium;
+}
+
+.nav-sidebar__brand-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: $font-size-small;
+  font-weight: 600;
+}
+
+.nav-sidebar__toggle-btn {
+  flex-shrink: 0;
+  all: unset;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: $border-radius-small;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nav-fg);
+  transition: background-color $nav-transition;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--nav-fg) 12%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--nav-fg) 50%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+// Volet réduit : le bloc "brand" masqué (opacity/max-width à 0 ci-dessus)
+// garde malgré tout sa place dans la ligne flex à cause du `justify-content:
+// space-between` — le bouton toggle reste alors plaqué à droite plutôt que
+// centré. On bascule sur un centrage explicite et on retire le `gap` (qui
+// ajouterait un espace fantôme entre le bloc masqué et le bouton).
+.nav-sidebar.closed .nav-sidebar__header {
+  justify-content: center;
+  gap: 0;
+}
+
+// ─── Zone de navigation (sections + items) ────────────────────────────────────
+.nav-sidebar__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: $padding-small 0;
+}
+
+// ─── Sections ─────────────────────────────────────────────────────────────────
+.nav-sidebar__section {
+  & + & {
+    margin-top: $margin-small;
+    padding-top: $margin-small;
+    border-top: 1px solid color-mix(in srgb, var(--nav-fg) 10%, transparent);
+  }
+}
+
+.nav-sidebar__section-title {
+  padding: $padding-small $padding-medium $padding-small;
+  color: color-mix(in srgb, var(--nav-fg) 50%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  max-height: 20px;
+  transition:
+    opacity $nav-transition,
+    max-height $nav-transition,
+    padding $nav-transition;
+
+  .nav-sidebar.closed & {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+// ─── Items de navigation ──────────────────────────────────────────────────────
+.nav-sidebar__item {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: $margin-small;
+  width: 100%;
+  padding: $padding-small $padding-medium;
+  color: color-mix(in srgb, var(--nav-fg) 80%, transparent);
+  font-size: $font-size-small;
+  font-family: inherit;
+  border-left: 3px solid transparent;
+  transition:
+    background-color $nav-transition,
+    color $nav-transition,
+    border-color $nav-transition;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--nav-fg) 8%, transparent);
+    color: var(--nav-fg);
+  }
+
+  &.active {
+    background-color: color-mix(in srgb, var(--nav-fg) 15%, transparent);
+    color: var(--nav-fg);
+    font-weight: 600;
+    border-left-color: var(--nav-fg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--nav-fg) 50%, transparent);
+    outline-offset: -2px;
+  }
+}
+
+// ─── Icône ────────────────────────────────────────────────────────────────────
+.nav-sidebar__item-icon {
+  flex-shrink: 0;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-medium;
+}
+
+// ─── Label (masqué quand fermé) ───────────────────────────────────────────────
+.nav-sidebar__item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    opacity $nav-transition,
+    max-width $nav-transition;
+  max-width: $nav-width-open;
+
+  .nav-sidebar.closed & {
+    opacity: 0;
+    max-width: 0;
+  }
+}
+
+// ─── Pied : utilisateur connecté + déconnexion ────────────────────────────────
+.nav-sidebar__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: $padding-small;
+  border-top: 1px solid color-mix(in srgb, var(--nav-fg) 10%, transparent);
+
+  .change-user-btns {
+    display: flex;
+    flex-direction: column;
+    gap: calc($margin-small / 2);
+
+    &__open {
+      flex-direction: row;
+
+      // Si le bouton de retour rapide est absent (déjà sur son propre
+      // compte), le bouton "Changer d'utilisateur" restant reprend toute la
+      // largeur de la ligne au lieu de laisser un espace vide à la place du
+      // second bouton.
+      > .custom-btn:only-child {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Logo applicatif : icône + nom recréé en texte (volet ouvert), icône seule
+// centrée (volet réduit) — au-dessus du nom de l'utilisateur, indépendant
+// du `align-items` du pied.
+.nav-sidebar__footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: $margin-small;
+  margin-bottom: 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nav-fg) 10%, transparent);
+}
+
+// Fond clair commun à l'icône et au texte (au lieu d'un fond propre à
+// l'icône seule) : reproduit le fond blanc du logo d'origine autour de
+// l'ensemble, icône + nom compris — le logo (bleu foncé) se fondrait sinon
+// dans le fond sombre de la nav, de la même couleur.
+.nav-sidebar__footer-logo-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: $border-radius-small;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-sidebar__footer-logo-img {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+// Nom de l'union recréé en HTML (plutôt qu'en image, illisible une fois
+// réduit à la largeur de la nav) : police à forts contrastes proche du
+// logo, sur 2 lignes pour tenir dans les 220px du volet ouvert. Couleur
+// alignée sur le bleu du logo (proche de $primary-color), lisible sur le
+// fond clair de .nav-sidebar__footer-logo-content.
+.nav-sidebar__footer-logo-text {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: $primary-color;
+}
+
+.nav-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: $margin-small;
+  padding: $padding-small $padding-small;
+  padding-left: calc($padding-small / 1.5);
+  min-width: 0;
+}
+
+// Volet réduit : par défaut, un enfant flex à largeur fixe (l'avatar, le
+// bouton de déconnexion en mode icône seule) n'est pas concerné par le
+// `stretch` du pied (colonne flex) et reste donc plaqué à gauche plutôt que
+// centré. On centre explicitement les enfants du pied, et on neutralise le
+// padding/gap asymétriques de la ligne utilisateur (pensés pour la largeur
+// ouverte) qui la feraient déborder une fois recentrée.
+.nav-sidebar.closed .nav-sidebar__footer {
+  align-items: center;
+}
+
+.nav-sidebar.closed .nav-sidebar__user {
+  justify-content: center;
+  gap: 0;
+  padding: $padding-small 0;
+}
+
+.nav-sidebar__user-avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--nav-fg) 15%, transparent);
+  color: var(--nav-fg);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.nav-sidebar__user-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--nav-fg);
+  font-size: $font-size-small;
+  opacity: 1;
+  max-width: $nav-width-open;
+  transition:
+    opacity $nav-transition,
+    max-width $nav-transition;
+
+  .nav-sidebar.closed & {
+    opacity: 0;
+    max-width: 0;
+  }
+}
+
+// ─── Badge de version — affiché dans le pied, au-dessus du logo. ─────────────
+.nav-sidebar__version-badge {
+  all: unset;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nav-fg) 55%, transparent);
+  transition: color $nav-transition;
+
+  &:hover {
+    color: var(--nav-fg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--nav-fg) 50%, transparent);
+    outline-offset: 2px;
+  }
+
+  // Nouveauté non lue.
+  &--notif {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: -5px;
+
+      width: 8px;
+      height: 8px;
+      background: $danger-color-light;
+      border-radius: 50%;
+      animation: nav-sidebar-version-badge-shake 4s ease-in-out infinite;
+    }
+  }
+}
+
+// Le shake ne dure qu'une fraction du cycle (0 → 12%), le reste du temps
+// (12% → 100%) le point est immobile : effet "coucou, je suis là" qui
+// revient toutes les 4s au lieu d'un mouvement permanent.
+@keyframes nav-sidebar-version-badge-shake {
+  0%,
+  12%,
+  100% {
+    transform: translateX(0);
+  }
+
+  1% {
+    transform: translateX(-2px);
+  }
+
+  2% {
+    transform: translateX(2px);
+  }
+
+  3% {
+    transform: translateX(-2px);
+  }
+
+  4% {
+    transform: translateX(2px);
+  }
+
+  5% {
+    transform: translateX(-1px);
+  }
+
+  6% {
+    transform: translateX(1px);
+  }
+
+  7%,
+  11% {
+    transform: translateX(0);
+  }
+}
+
+.nav-sidebar__version-badge--footer {
+  width: 100%;
+  text-align: center;
+  padding-bottom: 5px;
+}
+
+// Pastille numérique d'une entrée (ex. fiches à valider)
+.nav-sidebar__item {
+  position: relative;
+}
+
+.nav-sidebar__item-badge {
+  margin-left: auto;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background-color: $danger-color;
+  color: $text-color-light;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-sidebar.closed .nav-sidebar__item-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 1rem;
+  height: 1rem;
+  font-size: 0.6rem;
+}

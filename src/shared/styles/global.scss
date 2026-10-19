@@ -1,0 +1,51 @@
+body {
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: $background-color;
+  color: $text-color-light;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.global-app-container {
+  height: 100vh;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: $text-color-muted transparent;
+}
+
+/* WebKit (Chrome / Edge / Safari) */
+*::-webkit-scrollbar {
+  width: 6px; /* verticale */
+  height: 6px; /* horizontale */
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: $text-color-muted;
+  border-radius: $border-radius;
+}
+
+/* Hover subtil (optionnel mais recommandé) */
+*::-webkit-scrollbar-thumb:hover {
+  background-color: $secondary-color-dark;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

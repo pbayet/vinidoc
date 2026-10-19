@@ -1,0 +1,241 @@
+// ─── Tokens de couleur par type de changement ─────────────────────────────────
+
+$change-colors: (
+  "added": (
+    $success-color,
+    rgba($success-color, 0.08),
+  ),
+  "updated": (
+    $info-color-dark,
+    rgba($info-color-dark, 0.08),
+  ),
+  "fix": (
+    $success-color-dark,
+    rgba($success-color-dark, 0.08),
+  ),
+  "remove": (
+    $danger-color-dark,
+    rgba($danger-color-dark, 0.08),
+  ),
+  "refactor": (
+    $secondary-color,
+    rgba($secondary-color, 0.08),
+  ),
+);
+
+// ─── Métadonnées (créé par, date) ──────────────────────────────────────────────
+
+.version-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $margin-small $margin-medium;
+  margin: 0 0 $margin-medium;
+  padding-bottom: $margin-medium;
+  border-bottom: 1px solid $background-color-dark;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: $font-size-medium;
+    color: $text-color-dark;
+  }
+
+  &__icon {
+    color: $primary-color;
+    font-size: $font-size-small;
+  }
+
+  &__label {
+    color: $text-color-muted;
+
+    &::after {
+      content: ":";
+      margin-right: 0.3em;
+    }
+  }
+
+  &__value {
+    font-weight: 600;
+  }
+}
+
+// ─── Résumé ────────────────────────────────────────────────────────────────────
+
+.version-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: $margin-small;
+  margin: 0 0 $margin-medium;
+  padding: $padding-small $padding-medium;
+  border-radius: $border-radius;
+  background: $background-color;
+  border-left: 3px solid $primary-color;
+
+  &__icon {
+    margin-top: 0.2rem;
+    color: $primary-color;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: $font-size-medium;
+    color: $text-color-dark;
+    line-height: 1.5;
+    font-style: italic;
+  }
+}
+
+// ─── Titre de section ─────────────────────────────────────────────────────────
+
+.changes-section-title {
+  display: flex;
+  align-items: center;
+  gap: $margin-small;
+  margin: $margin-medium 0 $margin-small;
+  font-size: $font-size-large;
+  font-weight: 700;
+  color: $text-color-dark;
+}
+
+.changes-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: $primary-color;
+  color: $text-color-light;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.changes-empty {
+  margin: 0;
+  padding: $padding-medium;
+  text-align: center;
+  border-radius: $border-radius;
+  background: $background-color;
+  color: $text-color-muted;
+  font-size: $font-size-medium;
+}
+
+// ─── Liste principale des changements ─────────────────────────────────────────
+
+.changes-list {
+  margin: 0;
+  padding: 0;
+  padding-right: $margin-small;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $margin-medium;
+}
+
+// ─── Groupe (ADDED, UPDATED…) ─────────────────────────────────────────────────
+
+.change-group {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-small;
+  padding: $padding-small;
+  border-radius: $border-radius;
+  background: $background-color;
+
+  &-header {
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+  }
+
+  &-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: $font-size-small;
+
+    // .change-group-icon-added, -updated, etc.
+    @each $type, $vals in $change-colors {
+      &-#{$type} {
+        color: nth($vals, 1);
+        background: nth($vals, 2);
+      }
+    }
+  }
+
+  &-title {
+    flex: 1;
+    margin: 0;
+    font-size: $font-size-large;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+
+    // .change-group-title-added, -updated, etc.
+    @each $type, $vals in $change-colors {
+      &-#{$type} {
+        color: nth($vals, 1);
+      }
+    }
+  }
+
+  &-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: $card-bg;
+    color: $text-color-muted;
+    font-size: $font-size-xs;
+    font-weight: 700;
+    box-shadow: $box-shadow;
+  }
+
+  &-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $margin-small;
+  }
+}
+
+// ─── Item individuel ──────────────────────────────────────────────────────────
+
+.change-item {
+  border-radius: $border-radius;
+  padding: $padding-small $padding-medium;
+  border: 1px solid transparent;
+
+  // .change-item-added, -updated, etc.
+  @each $type, $vals in $change-colors {
+    &-#{$type} {
+      background: nth($vals, 2);
+      border-color: nth($vals, 1);
+    }
+  }
+
+  .change-title {
+    margin: 0 0 $margin-small;
+    font-size: $font-size-medium;
+    font-weight: 600;
+    color: $text-color-dark;
+  }
+
+  .change-description {
+    margin: 0;
+    font-size: $font-size-small;
+    color: $text-color-muted;
+    line-height: 1.5;
+  }
+}
