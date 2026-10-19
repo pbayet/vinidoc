@@ -186,6 +186,28 @@ export function useUserTheme() {
     [jwtPayload],
   );
 
+  /**
+   * Thème par défaut de l'utilisateur (commun à toutes les applications qui
+   * n'ont pas de thème propre) : POST sans APPCOD. Si cette application suit
+   * le thème par défaut, le nouveau thème s'applique immédiatement.
+   */
+  const setDefaultTheme = useCallback(
+    async (THEME: ThemePreference) => {
+      await apiRequest<ThemesResponse>({
+        endpoint: "usersmanager/theme",
+        method: "POST",
+        params: { THEME },
+        token: jwtPayload.$token,
+        setLoading: setSaving,
+        onSuccess: (result) => {
+          const next = parseThemesResponse(result.data);
+          if (next) setSnapshot({ theme: next, loadError: false });
+        },
+      });
+    },
+    [jwtPayload],
+  );
+
   return {
     /** null tant que la préférence n'est pas chargée */
     theme,
@@ -193,5 +215,6 @@ export function useUserTheme() {
     loadError,
     isSaving,
     setApplicationTheme,
+    setDefaultTheme,
   };
 }

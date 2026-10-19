@@ -172,11 +172,10 @@ src/
   (thème par défaut de l'utilisateur, commun à toutes les applications), Clair, Sombre ou
   Système. Elle est mise en cache dans `localStorage` (`vinidoc-theme`) pour le
   script anti-flash de `index.html`.
-- Le bouton « Modifier mon thème par défaut » ouvre les Paramètres de
-  users-manager (`${VITE_DOMAIN}/users-manager/settings`) après avoir généré un
-  token users-manager (`auth/app?appcode=USRMAN`) enregistré dans son cookie,
-  pour éviter la page de connexion. Nécessite une permission sur users-manager
-  et le même domaine que users-manager (test / production).
+- Le bouton « Modifier mon thème par défaut » ouvre une modale (Clair /
+  Sombre / Système) qui enregistre le thème par défaut de l'utilisateur,
+  commun à toutes ses applications (`POST usersmanager/theme` sans APPCOD),
+  directement depuis VINIDOC.
 
 ---
 

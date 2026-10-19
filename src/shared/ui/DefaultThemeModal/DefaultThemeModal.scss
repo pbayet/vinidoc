@@ -1,0 +1,19 @@
+.default-theme-modal {
+  &__hint {
+    margin: 0 0 $margin-medium;
+    font-size: $font-size-small;
+    color: $text-color-muted;
+  }
+
+  &__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $margin-small;
+  }
+
+  &__error {
+    margin: $margin-small 0 0;
+    font-size: $font-size-small;
+    color: $text-color-error;
+  }
+}

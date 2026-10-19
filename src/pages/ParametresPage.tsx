@@ -1,29 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { CustomButton, Icon } from "@uvcdr/custom-form-system";
 import PageLayout from "../shared/ui/PageLayout/PageLayout";
 import SectionCard from "../shared/ui/SectionCard/ui/SectionCard";
 import ThemePicker from "../shared/ui/ThemePicker/ThemePicker";
+import DefaultThemeModal from "../shared/ui/DefaultThemeModal/DefaultThemeModal";
 import { THEME_LABELS } from "../shared/lib/theme/theme";
 import { useUserTheme } from "../shared/lib/theme/userTheme";
-import { useUsersManagerSettings } from "../features/layout/hooks/useUsersManagerSettings";
 
 /**
  * Paramètres de l'utilisateur. Apparence : thème de VINIDOC pour son compte,
  * enregistré en base (usersmanager/theme, APPCOD VINDOC) et appliqué
- * immédiatement ; « Par défaut » reprend son thème par défaut, réglé dans
- * les Paramètres de users-manager (bouton dédié, connexion automatique).
+ * immédiatement ; « Par défaut » reprend son thème par défaut (commun à
+ * toutes ses applications), modifiable ici dans une modale.
  */
 const ParametresPage: React.FC = () => {
   const { theme, isLoading, isSaving, loadError, setApplicationTheme } =
     useUserTheme();
-  const { isOpening, openUsersManagerSettings } = useUsersManagerSettings();
+  const [isDefaultThemeOpen, setDefaultThemeOpen] = useState(false);
 
   return (
     <PageLayout title="Paramètres">
       <SectionCard
         title="Apparence"
         icon="circle-half-stroke"
-        description="Thème d'affichage de l'application pour votre compte (enregistré sur le serveur, commun à tous vos postes). « Par défaut » reprend votre thème par défaut, commun à toutes vos applications et réglé dans les Paramètres de users-manager."
+        description="Thème d'affichage de l'application pour votre compte (enregistré sur le serveur, commun à tous vos postes). « Par défaut » reprend votre thème par défaut, commun à toutes vos applications."
       >
         <ThemePicker
           name="vinidoc-theme"
@@ -41,17 +41,20 @@ const ParametresPage: React.FC = () => {
         )}
         <div className="vd-settings__default">
           <CustomButton
-            leftIcon={<Icon iconName="arrow-up-right-from-square" />}
+            leftIcon={<Icon iconName="palette" />}
             variant="neutral"
             size="sm"
-            loading={isOpening}
-            disabled={isOpening}
-            onClick={openUsersManagerSettings}
+            onClick={() => setDefaultThemeOpen(true)}
           >
             Modifier mon thème par défaut
           </CustomButton>
         </div>
       </SectionCard>
+
+      <DefaultThemeModal
+        isOpen={isDefaultThemeOpen}
+        onClose={() => setDefaultThemeOpen(false)}
+      />
     </PageLayout>
   );
 };
