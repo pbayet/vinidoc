@@ -18,11 +18,22 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      ...reactHooks.configs['recommended-latest'].rules,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+
+      // Règles « React Compiler » de react-hooks v7. Le projet n'utilise pas
+      // le React Compiler, et le code s'appuie volontairement sur des motifs
+      // React classiques qu'elles signalent : « latest ref » (`ref.current =
+      // valeur` pendant le rendu), `setState` dans un effet, `Date.now()`
+      // dans un `useMemo`. À réactiver si le React Compiler est adopté.
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/purity': 'off',
     },
   },
 )

@@ -11,8 +11,6 @@ import "@uvcdr/custom-form-system/dist/index.css";
 import { ModalProvider } from "@uvcdr/modal";
 import "@uvcdr/modal/styles.css";
 import "@uvcdr/confirm-notify-system/dist/index.css";
-import "@uvcdr/custom-list/styles.css";
-import "@uvcdr/statistics-system/dist/index.css";
 
 import {
   API_URL,

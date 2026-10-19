@@ -1,3 +1,5 @@
+@use "sass:list";
+
 // ─── Tokens de couleur par type de changement ─────────────────────────────────
 
 $change-colors: (
@@ -164,8 +166,8 @@ $change-colors: (
     // .change-group-icon-added, -updated, etc.
     @each $type, $vals in $change-colors {
       &-#{$type} {
-        color: nth($vals, 1);
-        background: nth($vals, 2);
+        color: list.nth($vals, 1);
+        background: list.nth($vals, 2);
       }
     }
   }
@@ -180,7 +182,7 @@ $change-colors: (
     // .change-group-title-added, -updated, etc.
     @each $type, $vals in $change-colors {
       &-#{$type} {
-        color: nth($vals, 1);
+        color: list.nth($vals, 1);
       }
     }
   }
@@ -220,8 +222,8 @@ $change-colors: (
   // .change-item-added, -updated, etc.
   @each $type, $vals in $change-colors {
     &-#{$type} {
-      background: nth($vals, 2);
-      border-color: nth($vals, 1);
+      background: list.nth($vals, 2);
+      border-color: list.nth($vals, 1);
     }
   }
 

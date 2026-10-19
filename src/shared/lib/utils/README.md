@@ -1,11 +1,7 @@
 # Utils – Documentation Technique
 
 Ensemble de fonctions utilitaires disponibles dans tout le projet React.  
-Organisées par catégories : arrays, cache, data, dates, nombres, storage et strings.
-
-## utils/array.functions.ts
-- getValueByPath
-- unique
+Organisées par catégories : cache, data, dates, nombres, storage et strings.
 
 ## utils/cache.functions.ts
 - setCache
@@ -52,36 +48,7 @@ Organisées par catégories : arrays, cache, data, dates, nombres, storage et st
 
 ---
 
-# 1. Array Functions (`utils/array.functions.ts`)
-
-## `getValueByPath(item, path)`
-Récupère une valeur dans un objet selon un chemin en notation dot.
-
-Exemple :  
-`getValueByPath({ a: { b: 2 } }, "a.b") → 2`
-
-Règles :
-- Retourne `undefined` si un segment ne correspond pas à un objet.
-- Ne gère pas les index numériques de tableaux.
-
----
-
-## `unique(items, path?)`
-Dédoublonnage d’un tableau.
-
-Modes :
-- Sans `path` :  
-  - Primitives → par valeur  
-  - Objets → par référence
-- Avec `path` :  
-  - Utilise `getValueByPath` pour déterminer la clé de comparaison
-
-Comportement :
-- Le premier élément rencontré pour une clé donnée est conservé.
-
----
-
-# 2. Cache Functions (`utils/cache.functions.ts`)
+# 1. Cache Functions (`utils/cache.functions.ts`)
 
 ## `setCache(key, value, ttlMs?)`
 Stocke une valeur dans :
@@ -123,7 +90,7 @@ Suppression totale du cache (mémoire + localStorage).
 
 ---
 
-# 3. Data Functions (`utils/data.functions.ts`)
+# 2. Data Functions (`utils/data.functions.ts`)
 
 ## `diffCompare(lhs, rhs, options)`
 Compare deux objets et normalise les diffs via deep-diff.
@@ -165,7 +132,7 @@ Retour :
 
 ---
 
-# 4. Date Functions (`utils/date.functions.ts`)
+# 3. Date Functions (`utils/date.functions.ts`)
 
 ## `isValidIsoDateString(value)`
 Vérifie la validité d’une date ISO, y compris overflow non valable.
@@ -197,7 +164,7 @@ Retourne un texte humain :
 
 ---
 
-# 5. Number Functions (`utils/number.functions.ts`)
+# 4. Number Functions (`utils/number.functions.ts`)
 
 ## `isDecimal(n)`
 Retourne `true` si le nombre n’est pas entier.
@@ -244,7 +211,7 @@ Formatte un nombre selon un locale (`fr-FR` par défaut).
 
 ---
 
-# 6. Storage Functions (`utils/storage.functions.ts`)
+# 5. Storage Functions (`utils/storage.functions.ts`)
 
 ## `getLocalStorageSize(pretty?)`
 Retourne :
@@ -280,7 +247,7 @@ Supprime un cookie en appliquant une expiration passée.
 
 ---
 
-# 7. String Functions (`utils/string.functions.ts`)
+# 6. String Functions (`utils/string.functions.ts`)
 
 ## `copyToClipboard(text)`
 Copie du texte dans le presse-papiers via l’API Clipboard.

@@ -14,7 +14,7 @@ const buildHiddenMessage = (
   technical: string,
   context?: ApiRequestContext,
 ): string => {
-  let params: unknown = null;
+  let params: unknown;
   try {
     params = context?.params ?? null;
     // force la sérialisation pour détecter les valeurs non-JSON

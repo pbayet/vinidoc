@@ -35,9 +35,9 @@ export default defineConfig(({ mode }) => {
       preserveSymlinks: true,
       alias: {
         // Force tout le monde à utiliser le même React
-        "@": resolve(__dirname, "src"),
-        react: resolve(__dirname, "node_modules/react"),
-        "react-dom": resolve(__dirname, "node_modules/react-dom"),
+        "@": resolve(import.meta.dirname, "src"),
+        react: resolve(import.meta.dirname, "node_modules/react"),
+        "react-dom": resolve(import.meta.dirname, "node_modules/react-dom"),
       },
     },
     css: {
