@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@uvcdr/api-auth-system";
 import { apiRequest } from "../../../app/api/api";
 import { VersionClass } from "../../../entities/application.class";
+import { APP_CODE } from "../../../app/config";
+import { Application } from "../../../entities/auth/user/Application.class";
 
 /**
  * Dernière version de l'application (+ ouverture du détail des nouveautés).
@@ -11,8 +13,23 @@ import { VersionClass } from "../../../entities/application.class";
 export function useAppVersion() {
   const { jwtPayload } = useAuth();
 
+  const [application, setApplication] = useState<Application>();
   const [version, setVersion] = useState<VersionClass>();
   const [isVersionModalOpen, setVersionModalOpen] = useState(false);
+
+  useEffect(() => {
+    apiRequest<Application>({
+      endpoint: "usersmanager/applications",
+      method: "GET",
+      params: { APPCOD: APP_CODE },
+      token: jwtPayload.$token,
+      silentError: true,
+      onSuccess(result) {
+        console.log("application", result.data);
+        setApplication(Application.parseToClass(result.data));
+      },
+    });
+  }, [jwtPayload.$token, jwtPayload.$userId]);
 
   useEffect(() => {
     apiRequest<VersionClass>({
@@ -49,6 +66,7 @@ export function useAppVersion() {
   const versionLabel = version?.VNUM ? `V${version.VNUM}` : "";
 
   return {
+    application,
     version,
     versionLabel,
     isVersionModalOpen,

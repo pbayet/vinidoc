@@ -12,6 +12,7 @@ import { useAppVersion } from "../../hooks/useAppVersion";
 import { useConfirm } from "@uvcdr/confirm-notify-system";
 import AppSwitcherModal from "./AppSwitcherModal";
 import { useVinidoc } from "../../../vinidoc/context/VinidocContext";
+import { isUrl } from "../../../../shared/lib/utils/string.functions";
 
 // Exportée : réutilisée par une éventuelle page de paramètres qui écrirait
 // directement dans cette même clé plutôt que d'en dupliquer une seconde.
@@ -97,12 +98,15 @@ const Nav: React.FC<NavProps> = ({
   // Numéro de version (badge, cf. footer ci-dessous) — même source que
   // l'ancien bouton de version du Header (`useAppVersion`).
   const {
+    application,
     version,
     versionLabel,
     isVersionModalOpen,
     openVersionModal,
     closeVersionModal,
   } = useAppVersion();
+
+  const appLogo = !isUrl(application?.LOGLNK) ? application?.LOGLNK : titleIcon;
 
   const NAV_SECTIONS: NavSection[] = [
     {
@@ -204,11 +208,11 @@ const Nav: React.FC<NavProps> = ({
       {/* En-tête : titre + icône, et bouton de rétractation (téléphone :
           referme le tiroir à la place) */}
       <div className="nav-sidebar__header">
-        {(title || titleIcon) && (
+        {(title || appLogo) && (
           <div className="nav-sidebar__brand">
-            {titleIcon && (
+            {appLogo && (
               <span className="nav-sidebar__brand-icon">
-                <Icon iconName={titleIcon} />
+                <Icon iconName={appLogo} />
               </span>
             )}
             {title && <span className="nav-sidebar__brand-title">{title}</span>}

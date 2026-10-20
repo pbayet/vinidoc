@@ -32,7 +32,7 @@ const removeAccents = (str: string): string => {
 export const normalizeStr = (
   str: string,
   respectAccents?: boolean,
-  respectCase?: boolean
+  respectCase?: boolean,
 ): string => {
   let result = str;
 
@@ -45,6 +45,17 @@ export const normalizeStr = (
   }
 
   return result;
+};
+
+export const isUrl = (value: unknown): boolean => {
+  if (typeof value !== "string") return false;
+
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -61,7 +72,7 @@ export const normalizeStr = (
  */
 const levenshteinSimilarity = (s: string, t: string): number => {
   const dp = Array.from({ length: s.length + 1 }, () =>
-    Array(t.length + 1).fill(0)
+    Array(t.length + 1).fill(0),
   );
 
   for (let i = 0; i <= s.length; i++) dp[i][0] = i;
@@ -72,7 +83,7 @@ const levenshteinSimilarity = (s: string, t: string): number => {
       dp[i][j] = Math.min(
         dp[i - 1][j] + 1, // suppression
         dp[i][j - 1] + 1, // insertion
-        dp[i - 1][j - 1] + (s[i - 1] === t[j - 1] ? 0 : 1) // substitution
+        dp[i - 1][j - 1] + (s[i - 1] === t[j - 1] ? 0 : 1), // substitution
       );
     }
   }
@@ -108,7 +119,7 @@ export const advancedSearch = (
     respectAccents?: boolean;
     respectCase?: boolean;
     unilateralIncludes?: boolean;
-  }
+  },
 ): boolean => {
   if (!search?.trim() || !comparedValue?.trim()) return false;
 

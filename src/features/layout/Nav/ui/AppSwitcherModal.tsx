@@ -3,6 +3,7 @@ import { Modal } from "@uvcdr/modal";
 import { Icon } from "@uvcdr/custom-form-system";
 import { useAppSwitcher } from "../hooks/useAppSwitcher";
 import "../styles/AppSwitcherModal.scss";
+import { isUrl } from "../../../../shared/lib/utils/string.functions";
 
 interface AppSwitcherModalProps {
   isOpen: boolean;
@@ -45,7 +46,10 @@ const AppSwitcherModal: React.FC<AppSwitcherModalProps> = ({
       <div className="app-switcher">
         {isLoadingApps ? (
           [...Array(3)].map((_, index) => (
-            <div key={index} className="app-switcher__item app-switcher__item--loading">
+            <div
+              key={index}
+              className="app-switcher__item app-switcher__item--loading"
+            >
               <span className="app-switcher__item-icon-skeleton" />
               <span className="app-switcher__item-label-skeleton" />
             </div>
@@ -61,7 +65,11 @@ const AppSwitcherModal: React.FC<AppSwitcherModalProps> = ({
             >
               <span className="app-switcher__item-icon">
                 {app.LOGLNK ? (
-                  <img src={app.LOGLNK} alt="" />
+                  isUrl(app.LOGLNK) ? (
+                    <img src={app.LOGLNK} alt="" />
+                  ) : (
+                    <Icon iconName={app.LOGLNK} />
+                  )
                 ) : (
                   <Icon iconName="layer-group" />
                 )}
