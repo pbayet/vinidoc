@@ -106,7 +106,10 @@ const Nav: React.FC<NavProps> = ({
     closeVersionModal,
   } = useAppVersion();
 
-  const appLogo = !isUrl(application?.LOGLNK) ? application?.LOGLNK : titleIcon;
+  const appLogo =
+    application?.LOGLNK && !isUrl(application.LOGLNK)
+      ? application.LOGLNK
+      : titleIcon;
 
   const NAV_SECTIONS: NavSection[] = [
     {
