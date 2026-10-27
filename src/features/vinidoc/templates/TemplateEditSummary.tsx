@@ -4,8 +4,8 @@ import {
   CustomFormSubmit,
   Icon,
   useFormContext,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import { useVinidoc } from "../context/VinidocContext";
 import { formatBytes, formatDateTime } from "../lib/format";
 import { templateLanguageLabel } from "./templateUtils";
@@ -122,7 +122,7 @@ const TemplateEditSummary: React.FC<TemplateEditSummaryProps> = ({
     dirty && isValid && !fileBlocked && !submitting && !!values.TPLNAM.trim();
 
   return (
-    <SectionCard title="Récapitulatif" icon="clipboard-check">
+    <CustomFormSection title="Récapitulatif" icon={<Icon iconName="clipboard-check" />}>
       <div className="vd-summary">
         <div className="vd-summary__wine">
           <span className="vd-summary__wine-title">
@@ -201,7 +201,7 @@ const TemplateEditSummary: React.FC<TemplateEditSummaryProps> = ({
           </li>
         </p>
       </div>
-    </SectionCard>
+    </CustomFormSection>
   );
 };
 

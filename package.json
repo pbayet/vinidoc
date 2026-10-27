@@ -17,7 +17,7 @@
     "@fortawesome/react-fontawesome": "^3.5.0",
     "@uvcdr/api-auth-system": "https://dev.union-vignerons.com/npm/uvcdr/api-auth-system/0.1.0",
     "@uvcdr/confirm-notify-system": "https://dev.union-vignerons.com/npm/uvcdr/confirm-notify-system/0.1.0",
-    "@uvcdr/custom-form-system": "https://dev.union-vignerons.com/npm/uvcdr/custom-form-system/1.1.0",
+    "@uvcdr/custom-form-system": "https://dev.union-vignerons.com/npm/uvcdr/custom-form-system/3.1.1",
     "@uvcdr/modal": "https://dev.union-vignerons.com/npm/uvcdr/modal/0.1.0",
     "deep-diff": "^1.0.2",
     "lodash": "^4.17.21",

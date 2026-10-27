@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { CustomButton, Icon } from "@uvcdr/custom-form-system";
+import { CustomButton, Icon, CustomFormSection } from "@uvcdr/custom-form-system";
 import PageLayout from "../shared/ui/PageLayout/PageLayout";
-import SectionCard from "../shared/ui/SectionCard/ui/SectionCard";
 import ThemePicker from "../shared/ui/ThemePicker/ThemePicker";
 import DefaultThemeModal from "../shared/ui/DefaultThemeModal/DefaultThemeModal";
 import { THEME_LABELS } from "../shared/lib/theme/theme";
@@ -20,14 +19,12 @@ const ParametresPage: React.FC = () => {
 
   return (
     <PageLayout title="Paramètres">
-      <SectionCard
+      <CustomFormSection
         title="Apparence"
-        icon="circle-half-stroke"
+        icon={<Icon iconName="circle-half-stroke" />}
         description="Thème d'affichage de l'application pour votre compte (enregistré sur le serveur, commun à tous vos postes). « Par défaut » reprend votre thème par défaut, commun à toutes vos applications."
       >
         <ThemePicker
-          name="vinidoc-theme"
-          size="compact"
           value={theme?.application ?? null}
           defaultOption={`Par défaut${theme ? ` (${THEME_LABELS[theme.default]})` : ""}`}
           onChange={(value) => void setApplicationTheme(value)}
@@ -43,13 +40,13 @@ const ParametresPage: React.FC = () => {
           <CustomButton
             leftIcon={<Icon iconName="palette" />}
             variant="neutral"
-            size="sm"
+            size="xs"
             onClick={() => setDefaultThemeOpen(true)}
           >
             Modifier mon thème par défaut
           </CustomButton>
         </div>
-      </SectionCard>
+      </CustomFormSection>
 
       <DefaultThemeModal
         isOpen={isDefaultThemeOpen}

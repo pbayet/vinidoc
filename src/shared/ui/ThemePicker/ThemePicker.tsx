@@ -1,6 +1,9 @@
 import React from "react";
-import "./ThemePicker.scss";
-import { CustomInputRadioButton } from "@uvcdr/custom-form-system";
+import {
+  CustomButton,
+  CustomButtonGroup,
+  Icon,
+} from "@uvcdr/custom-form-system";
 import { THEME_LABELS, type ThemePreference } from "../../lib/theme/theme";
 
 const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
@@ -9,9 +12,10 @@ const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
   { value: "system", icon: "desktop" },
 ];
 
+/** Valeur du bouton « Par défaut » (le groupe ne gère que des chaînes). */
+const DEFAULT_VALUE = "default";
+
 interface ThemePickerProps {
-  /** Nom du groupe de boutons radio (unique dans la page). */
-  name: string;
   /** Valeur sélectionnée ; null = option « Par défaut » (si `defaultOption`). */
   value: ThemePreference | null;
   onChange: (value: ThemePreference | null) => void;
@@ -22,21 +26,21 @@ interface ThemePickerProps {
   defaultOption?: string;
   disabled?: boolean;
   ariaLabel?: string;
-  /** "compact" : boutons plus petits et sans marge (ex. dans une liste). */
-  size?: "default" | "compact";
 }
 
 /** Choix du thème d'affichage (Clair / Sombre / Système). */
 const ThemePicker: React.FC<ThemePickerProps> = ({
-  name,
+  defaultOption,
   value,
   onChange,
-  defaultOption,
   disabled,
   ariaLabel = "Thème d'affichage",
-  size = "default",
 }) => {
-  const options: { value: ThemePreference | null; label: string; icon: string }[] = [
+  const options: {
+    value: ThemePreference | null;
+    label: string;
+    icon: string;
+  }[] = [
     ...(defaultOption
       ? [{ value: null, label: defaultOption, icon: "rotate-left" }]
       : []),
@@ -44,28 +48,30 @@ const ThemePicker: React.FC<ThemePickerProps> = ({
   ];
 
   return (
-    <div
-      className={`theme-picker${size === "compact" ? " theme-picker--compact" : ""}`}
+    <CustomButtonGroup
       role="radiogroup"
       aria-label={ariaLabel}
+      menuStyle="toolbar"
+      size={"sm"}
+      selectionMode="single"
+      selectedColor="success"
+      disabled={disabled}
+      value={value ?? DEFAULT_VALUE}
+      onValueChange={(v) => {
+        if (typeof v !== "string") return;
+        onChange(v === DEFAULT_VALUE ? null : (v as ThemePreference));
+      }}
     >
       {options.map((option) => (
-        <CustomInputRadioButton
-          key={option.value ?? "default"}
-          label={option.label}
-          name={name}
-          value={option.value ?? "default"}
-          checked={value === option.value}
-          onChange={() => onChange(option.value)}
-          disabled={disabled}
-          inputSize={size === "compact" ? "xs" : "sm"}
-          states={{
-            unchecked: { variant: "neutral", icon: option.icon },
-            checked: { variant: "primary", icon: option.icon },
-          }}
-        />
+        <CustomButton
+          key={option.value ?? DEFAULT_VALUE}
+          value={option.value ?? DEFAULT_VALUE}
+          leftIcon={<Icon iconName={option.icon} />}
+        >
+          {option.label}
+        </CustomButton>
       ))}
-    </div>
+    </CustomButtonGroup>
   );
 };
 

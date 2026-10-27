@@ -3,8 +3,8 @@ import {
   FileViewerModal,
   Icon,
   useFileViewer,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import { useVinidoc } from "../context/VinidocContext";
 import {
   formatBytes,
@@ -46,15 +46,14 @@ const GenerationHistory: React.FC<GenerationHistoryProps> = ({
   };
 
   return (
-    <SectionCard
-      title="Dernières générations"
-      icon="clock-rotate-left"
+    <CustomFormSection
+      title={`Dernières générations (${history.length})`}
+      icon={<Icon iconName="clock-rotate-left" />}
       description={
         sheetCode
           ? `Fichiers générés pour ${sheetCode}.`
           : "Tous vins confondus."
       }
-      actions={<span className="vd-chip">{history.length}</span>}
     >
       {history.length === 0 ? (
         <div className="section-placeholder">Aucune fiche générée.</div>
@@ -147,7 +146,7 @@ const GenerationHistory: React.FC<GenerationHistoryProps> = ({
         </div>
       )}
       {viewer.viewerProps && <FileViewerModal {...viewer.viewerProps} />}
-    </SectionCard>
+    </CustomFormSection>
   );
 };
 

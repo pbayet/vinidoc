@@ -1,25 +1,27 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  CustomButton,
+  CustomButtonGroup,
   CustomForm,
-  CustomFormCheckBoxButton,
+  CustomFormApi,
   CustomFormDivider,
   CustomFormFile,
   CustomFormGrid,
-  CustomFormRadioButton,
   CustomFormSection,
   CustomFormSelect,
+  FileViewerModal,
   Icon,
   useFormContext,
   validators,
   type FieldChange,
   type SelectOption,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import StepBadge from "../ui/StepBadge";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";
 import { STATUS_LABELS, languageName, sheetTitle } from "../lib/format";
 import { templateLanguageLabel } from "../templates/templateUtils";
+import { useTemplatePreview } from "../templates/useTemplatePreview";
 import GenerationPreview from "./GenerationPreview";
 import GenerationSummary from "./GenerationSummary";
 import { contentSourceOf, useGenerationSource } from "./useGenerationSource";
@@ -105,13 +107,16 @@ const GenerationForm: React.FC<GenerationFormProps> = ({
       defaultValues={initial}
       onChange={handleChange}
       onSubmit={handleSubmit}
-      inputSize="xs"
+      inputSize="sm"
     >
-      <GenerationWorkspace
-        sheets={sheets}
-        templates={templates}
-        result={result}
-      />
+      {(api) => (
+        <GenerationWorkspace
+          sheets={sheets}
+          templates={templates}
+          result={result}
+          formApi={api}
+        />
+      )}
     </CustomForm>
   );
 };
@@ -122,16 +127,19 @@ interface GenerationWorkspaceProps {
   sheets: SheetListItem[];
   templates: Template[];
   result: GenerationResult | null;
+  formApi: CustomFormApi<GenerationFormValues>;
 }
 
 const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
   sheets,
   templates,
   result,
+  formApi,
 }) => {
   const api = useVinidocApi();
   const { languages, colors, defaultLng } = useVinidoc();
   const { values, setFieldValue } = useFormContext<GenerationFormValues>();
+  const preview = useTemplatePreview();
 
   const sheet = sheets.find((s) => String(s.SHTID) === values.SHTID);
   const template = templates.find(
@@ -140,15 +148,31 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
       (!t.LNGCOD || t.LNGCOD === values.LNGCOD),
   );
 
+  console.log(sheets, sheet);
+
   const source = useGenerationSource({
     api,
     sheet,
     lng: values.LNGCOD,
     template,
   });
+
   const { content, availableLngs, check } = source;
   const notValidated = !!sheet && contentSourceOf(sheet) === "CURRENT";
   const lngAvailable = availableLngs.includes(values.LNGCOD);
+
+  // Changement de vin : présélection de son modèle par défaut (s'il est
+  // actif), une seule fois par vin pour ne pas écraser un choix manuel.
+  const presetFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!sheet || !templates.length || presetFor.current === values.SHTID)
+      return;
+    presetFor.current = values.SHTID;
+    const def = templates.find((t) => t.TPLID === sheet.DEFTPLID);
+    if (!def) return;
+    setFieldValue("TPLID", String(def.TPLID));
+    if (def.LNGCOD) setFieldValue("LNGCOD", def.LNGCOD);
+  }, [sheet, templates, values.SHTID, setFieldValue]);
 
   // Langue absente du contenu : langue par défaut, sinon la première.
   useEffect(() => {
@@ -172,8 +196,16 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
     const validated = sheets.filter((s) => contentSourceOf(s) === "VALIDATED");
     const others = sheets.filter((s) => contentSourceOf(s) === "CURRENT");
     return [
-      { type: "category", label: "Validés par le marketing", children: validated.map(toOption) },
-      { type: "category", label: "Non validés (saisie en cours)", children: others.map(toOption) },
+      {
+        type: "category",
+        label: "Validés par le marketing",
+        children: validated.map(toOption),
+      },
+      {
+        type: "category",
+        label: "Non validés (saisie en cours)",
+        children: others.map(toOption),
+      },
     ].filter((c) => c.children.length > 0) as SelectOption[];
   }, [sheets]);
 
@@ -208,9 +240,9 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
   return (
     <div className="vd-generate">
       <div className="vd-generate__main">
-        <SectionCard
+        <CustomFormSection
           title="Paramètres de la fiche"
-          icon="sliders"
+          icon={<Icon iconName="sliders" />}
           description="Vin validé : dernière version validée par le marketing. Vin non validé : saisie en cours."
         >
           <CustomFormSection
@@ -279,6 +311,20 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
                 helpText={template?.DESCR ?? undefined}
               />
             </CustomFormGrid>
+            <div className="vd-section-actions">
+              <CustomButton
+                type="button"
+                size="xs"
+                variant="outline"
+                leftIcon={<Icon iconName="eye" />}
+                disabled={!template}
+                loading={!!template && preview.loadingId === template.TPLID}
+                title="Aperçu PDF du modèle rempli de faux texte (longueur max de chaque balise)"
+                onClick={() => template && void preview.open(template.TPLID)}
+              >
+                Aperçu du modèle
+              </CustomButton>
+            </div>
           </CustomFormSection>
 
           <CustomFormDivider />
@@ -292,52 +338,70 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
                 <span className="vd-generate__label" id="vd-format-label">
                   Format de sortie
                 </span>
-                <div
-                  className="vd-generate__choices"
-                  role="radiogroup"
-                  aria-labelledby="vd-format-label"
+                <CustomButtonGroup
+                  menuStyle="segmented"
+                  size={"sm"}
+                  selectionMode="single"
+                  selectedColor="success"
+                  value={formApi.values["FORMAT"]}
+                  onValueChange={(v) => {
+                    if (typeof v !== "string") return;
+                    formApi.setFieldValue("FORMAT", v);
+                  }}
                 >
                   {OUTPUT_FORMATS.map((f) => (
-                    <CustomFormRadioButton
-                      key={f}
-                      name="FORMAT"
-                      optionValue={f}
-                      label={FORMAT_META[f].label}
-                      states={{
-                        unchecked: {
-                          variant: "neutral",
-                          icon: FORMAT_META[f].icon,
-                        },
-                        checked: {
-                          variant: "primary",
-                          icon: FORMAT_META[f].icon,
-                        },
-                      }}
-                    />
+                    <CustomButton
+                      value={f}
+                      leftIcon={<Icon iconName={FORMAT_META[f].icon}></Icon>}
+                    >
+                      {FORMAT_META[f].label}
+                    </CustomButton>
                   ))}
-                </div>
+                </CustomButtonGroup>
               </div>
 
               <div>
                 <span className="vd-generate__label">Logos</span>
-                <div className="vd-generate__choices">
-                  <CustomFormCheckBoxButton
-                    name="HVE"
-                    label="HVE"
-                    states={{
-                      unchecked: { variant: "neutral", icon: "plus" },
-                      checked: { variant: "success", icon: "check" },
-                    }}
-                  />
-                  <CustomFormCheckBoxButton
-                    name="BIO"
-                    label="BIO"
-                    states={{
-                      unchecked: { variant: "neutral", icon: "plus" },
-                      checked: { variant: "success", icon: "check" },
-                    }}
-                  />
-                </div>
+                <CustomButtonGroup
+                  attached
+                  variant="danger-outline"
+                  size="sm"
+                  aria-label="Affichage"
+                  selectedVariant="success-outline"
+                  pressEffect={false}
+                  selectionMode="multiple"
+                  value={[
+                    formApi.values["HVE"] ? "HVE" : undefined,
+                    formApi.values["BIO"] ? "BIO" : undefined,
+                  ].filter((v) => v !== undefined)}
+                  onValueChange={(v) => {
+                    if (!Array.isArray(v)) return;
+                    // v = sélection complète après le clic, pas le bouton cliqué.
+                    formApi.setFieldValue("HVE", v.includes("HVE"));
+                    formApi.setFieldValue("BIO", v.includes("BIO"));
+                  }}
+                >
+                  <CustomButton
+                    value={"HVE"}
+                    leftIcon={
+                      <Icon
+                        iconName={formApi.values["HVE"] ? "check" : "plus"}
+                      ></Icon>
+                    }
+                  >
+                    HVE
+                  </CustomButton>
+                  <CustomButton
+                    value={"BIO"}
+                    leftIcon={
+                      <Icon
+                        iconName={formApi.values["BIO"] ? "check" : "plus"}
+                      ></Icon>
+                    }
+                  >
+                    BIO
+                  </CustomButton>
+                </CustomButtonGroup>
               </div>
             </div>
             <p className="vd-muted vd-generate__hint">
@@ -354,11 +418,11 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
               helpText="Remplace l'image « img:BOTTLEPHOTO » du modèle ; sinon l'image du modèle est conservée. 15 Mo max."
             />
           </CustomFormSection>
-        </SectionCard>
+        </CustomFormSection>
 
-        <SectionCard
+        <CustomFormSection
           title="Contrôle et aperçu"
-          icon="eye"
+          icon={<Icon iconName="eye" />}
           description={
             notValidated
               ? "Contrôle des longueurs et saisie en cours (non validée) qui sera injectée dans le modèle."
@@ -386,7 +450,7 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
               checking={source.checking}
             />
           )}
-        </SectionCard>
+        </CustomFormSection>
       </div>
 
       <aside className="vd-generate__aside">
@@ -397,6 +461,10 @@ const GenerationWorkspace: React.FC<GenerationWorkspaceProps> = ({
           result={result}
         />
       </aside>
+
+      {preview.viewer.viewerProps && (
+        <FileViewerModal {...preview.viewer.viewerProps} />
+      )}
     </div>
   );
 };

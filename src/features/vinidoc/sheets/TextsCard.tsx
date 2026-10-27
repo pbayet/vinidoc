@@ -1,6 +1,9 @@
 import React from "react";
-import { CustomButton, Icon } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
+import {
+  CustomButton,
+  Icon,
+  CustomFormSection,
+} from "@uvcdr/custom-form-system";
 import LanguageTabs from "../ui/LanguageTabs";
 import LimitedTextarea from "../ui/LimitedTextarea";
 import { useVinidoc } from "../context/VinidocContext";
@@ -47,58 +50,31 @@ const TextsCard: React.FC<TextsCardProps> = ({
   onCopyFrom,
 }) => {
   const { languages, defaultLng, mergeFields } = useVinidoc();
-  const visibleLanguages = onlyLng ? languages.filter((l) => l.LNGCOD === onlyLng) : languages;
+  const visibleLanguages = onlyLng
+    ? languages.filter((l) => l.LNGCOD === onlyLng)
+    : languages;
   const current = texts[activeLng] ?? emptyText();
   const isSaved = savedLngs.includes(activeLng);
   const isDirty = dirtyLngs.includes(activeLng);
-  const copySource = savedLngs.includes(defaultLng) && activeLng !== defaultLng ? defaultLng : null;
+  const copySource =
+    savedLngs.includes(defaultLng) && activeLng !== defaultLng
+      ? defaultLng
+      : null;
 
   // Balise de modèle alimentée par ce champ de traduction (cf. TEXT_FIELDS
   // côté API) : les champs sans balise (garde, accords...) n'ont pas de limite.
-  const limitOf = (field: string) => mergeFields?.TEXT.find((f) => f.SHEETFIELD === field);
+  const limitOf = (field: string) =>
+    mergeFields?.TEXT.find((f) => f.SHEETFIELD === field);
 
   return (
-    <SectionCard
+    <CustomFormSection
       title="Textes"
-      icon="language"
+      icon={<Icon iconName="language" />}
       className="section-grid--full"
       description={
         onlyLng
           ? `Textes en ${languageName(languages, onlyLng)} (langue de référence). Les traductions pourront être ajoutées après la création.`
           : "Cépages, terroir, vinification, dégustation, garde et accords — une version par langue. La langue de référence (★) est obligatoire pour soumettre la fiche."
-      }
-      actions={
-        !readOnly &&
-        onSave && (
-          <>
-            {isSaved && activeLng !== defaultLng && onDelete && (
-              <CustomButton
-                size="xs"
-                variant="danger-ghost"
-                leftIcon={<Icon iconName="trash" />}
-                disabled={saving}
-                onClick={() => onDelete(activeLng)}
-              >
-                Supprimer la langue
-              </CustomButton>
-            )}
-            {isDirty && onReset && (
-              <CustomButton size="xs" variant="ghost" leftIcon={<Icon iconName="rotate-left" />} onClick={() => onReset(activeLng)} disabled={saving}>
-                Annuler
-              </CustomButton>
-            )}
-            <CustomButton
-              size="xs"
-              variant="primary"
-              leftIcon={<Icon iconName="floppy-disk" />}
-              disabled={!isDirty || saving}
-              loading={saving}
-              onClick={() => onSave(activeLng)}
-            >
-              Enregistrer ({activeLng.toUpperCase()})
-            </CustomButton>
-          </>
-        )
       }
     >
       {visibleLanguages.length > 1 && (
@@ -113,7 +89,8 @@ const TextsCard: React.FC<TextsCardProps> = ({
 
       {!readOnly && !isSaved && !isDirty && copySource && onCopyFrom && (
         <div className="vd-alert vd-alert--info">
-          <Icon iconName="circle-info" /> Pas encore de texte en {languageName(languages, activeLng)}.
+          <Icon iconName="circle-info" /> Pas encore de texte en{" "}
+          {languageName(languages, activeLng)}.
           <CustomButton
             size="xs"
             variant="outline"
@@ -145,7 +122,45 @@ const TextsCard: React.FC<TextsCardProps> = ({
           );
         })}
       </div>
-    </SectionCard>
+      {!readOnly && onSave && (
+        <div className="vd-section-actions">
+          {isSaved && activeLng !== defaultLng && onDelete && (
+            <CustomButton
+              size="xs"
+              variant="danger-ghost"
+              leftIcon={<Icon iconName="trash" />}
+              disabled={saving}
+              onClick={() => onDelete(activeLng)}
+            >
+              Supprimer la langue
+            </CustomButton>
+          )}
+          {isDirty && onReset && (
+            <CustomButton
+              shortcut="Mod+Z"
+              bindShortcut
+              size="xs"
+              variant="danger-outline"
+              leftIcon={<Icon iconName="rotate-left" />}
+              onClick={() => onReset(activeLng)}
+              disabled={saving}
+            >
+              Annuler
+            </CustomButton>
+          )}
+          <CustomButton
+            size="xs"
+            variant="primary"
+            leftIcon={<Icon iconName="floppy-disk" />}
+            disabled={!isDirty || saving}
+            loading={saving}
+            onClick={() => onSave(activeLng)}
+          >
+            Enregistrer ({activeLng.toUpperCase()})
+          </CustomButton>
+        </div>
+      )}
+    </CustomFormSection>
   );
 };
 

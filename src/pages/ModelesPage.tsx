@@ -5,15 +5,16 @@ import {
   FileViewerModal,
   Icon,
   useFileViewer,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
 import PageLayout from "../shared/ui/PageLayout/PageLayout";
-import SectionCard from "../shared/ui/SectionCard/ui/SectionCard";
 import { useWebSocket } from "../shared/lib/hooks/useWebSocket";
 import { useVinidocApi } from "../features/vinidoc/api/useVinidocApi";
 import { useVinidoc } from "../features/vinidoc/context/VinidocContext";
 import TemplateImportModal from "../features/vinidoc/templates/TemplateImportModal";
 import TemplateEditModal from "../features/vinidoc/templates/TemplateEditModal";
 import MergeFieldsCatalog from "../features/vinidoc/templates/MergeFieldsCatalog";
+import { useTemplatePreview } from "../features/vinidoc/templates/useTemplatePreview";
 import {
   templateLanguageLabel,
   toTemplateViewerFile,
@@ -45,6 +46,7 @@ const ModelesPage: React.FC = () => {
   const editId = tplid && !importOpen ? Number(tplid) : null;
   const closeModal = useCallback(() => navigate("/modeles"), [navigate]);
   const viewer = useFileViewer();
+  const preview = useTemplatePreview();
 
   // Fichiers des modèles : navigation précédent/suivant dans la liseuse.
   const files = useMemo(
@@ -106,9 +108,9 @@ const ModelesPage: React.FC = () => {
       }
     >
       <div className="section-grid">
-        <SectionCard
+        <CustomFormSection
           title="Modèles"
-          icon="file-powerpoint"
+          icon={<Icon iconName="file-powerpoint" />}
           className="section-grid--full"
           description="Cliquez sur un modèle pour régler la longueur max de chaque balise, remplacer le fichier ou le désactiver."
         >
@@ -174,6 +176,19 @@ const ModelesPage: React.FC = () => {
                       <span className="vd-muted">
                         {formatBytes(t.SIZEBYTES)}
                       </span>
+                      {t.FILEURL && (
+                        <CustomButton
+                          size="2xs"
+                          variant="outline"
+                          className="vd-preview-btn"
+                          leftIcon={<Icon iconName="eye" />}
+                          loading={preview.loadingId === t.TPLID}
+                          title="Aperçu PDF du modèle rempli de faux texte (longueur max de chaque balise)"
+                          onClick={() => void preview.open(t.TPLID)}
+                        >
+                          Aperçu
+                        </CustomButton>
+                      )}
                     </td>
                     <td className="vd-muted">
                       {formatDateTime(t.MODDAT)} — {t.MODUSR}
@@ -191,7 +206,7 @@ const ModelesPage: React.FC = () => {
               <div className="vd-empty">Chargement…</div>
             )}
           </div>
-        </SectionCard>
+        </CustomFormSection>
 
         <MergeFieldsCatalog />
       </div>
@@ -210,6 +225,9 @@ const ModelesPage: React.FC = () => {
       )}
 
       {viewer.viewerProps && <FileViewerModal {...viewer.viewerProps} />}
+      {preview.viewer.viewerProps && (
+        <FileViewerModal {...preview.viewer.viewerProps} />
+      )}
     </PageLayout>
   );
 };

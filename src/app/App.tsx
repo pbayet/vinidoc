@@ -1,5 +1,6 @@
 import React from "react";
 import "../shared/styles/global.scss";
+import "../shared/styles/layout.scss";
 import { useNavigate } from "react-router-dom";
 import Router from "./router/router";
 import { forceCleanExpiredCache } from "../shared/lib/utils/cache.functions";

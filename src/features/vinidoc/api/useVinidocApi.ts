@@ -18,6 +18,7 @@ import type {
   SheetVersionSummary,
   Template,
   TemplateInspection,
+  TemplatePreview,
   TagType,
   TranslationValues,
 } from "../../../entities/vinidoc/vinidoc.types";
@@ -110,6 +111,8 @@ export function createVinidocApi(token: string | undefined) {
       call<SheetState>(`sheets/${SHTID}`, "PUT", { ...body }, x),
     deleteSheet: (SHTID: number, ROWVER: string, COMMENT?: string, x?: RequestExtras) =>
       call<{ SHTID: number; DELETED: boolean }>(`sheets/${SHTID}`, "DELETE", { ROWVER, COMMENT }, x),
+    setDefaultTemplate: (SHTID: number, DEFTPLID: number | null, ROWVER: string, x?: RequestExtras) =>
+      call<SheetState>(`sheets/${SHTID}/default-template`, "PUT", { DEFTPLID, ROWVER }, x),
     saveTranslation: (
       SHTID: number,
       LNGCOD: string,
@@ -165,6 +168,8 @@ export function createVinidocApi(token: string | undefined) {
       TAGS: { TAGTYP: TagType; TAGNAM: string; MAXLEN: number | null; REQUIRED: boolean }[],
       x?: RequestExtras,
     ) => call<Template>(`templates/${TPLID}/tags`, "PUT", { TAGS }, x),
+    previewTemplate: (TPLID: number, x?: RequestExtras) =>
+      call<TemplatePreview>(`templates/${TPLID}/preview`, "GET", {}, x),
     deleteTemplate: (TPLID: number, x?: RequestExtras) =>
       call<{ TPLID: number; DELETED: boolean }>(`templates/${TPLID}`, "DELETE", {}, x),
 

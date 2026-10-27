@@ -5,12 +5,6 @@
     color: $text-color-muted;
   }
 
-  &__options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $margin-small;
-  }
-
   &__error {
     margin: $margin-small 0 0;
     font-size: $font-size-small;

@@ -4,8 +4,8 @@ import {
   CustomFormSubmit,
   Icon,
   useFormContext,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import { useVinidoc } from "../context/VinidocContext";
 import {
   colorLabel,
@@ -124,7 +124,7 @@ const GenerationSummary: React.FC<GenerationSummaryProps> = ({
   const logos = logosLabel(values);
 
   return (
-    <SectionCard title="Récapitulatif" icon="clipboard-check">
+    <CustomFormSection title="Récapitulatif" icon={<Icon iconName="clipboard-check" />}>
       <div className="vd-summary">
         {sheet ? (
           <div className="vd-summary__wine">
@@ -200,7 +200,7 @@ const GenerationSummary: React.FC<GenerationSummaryProps> = ({
 
         {result && <GenerationResultCard result={result} />}
       </div>
-    </SectionCard>
+    </CustomFormSection>
   );
 };
 

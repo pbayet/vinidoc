@@ -1,7 +1,6 @@
 import React from "react";
-import { CustomButton, Icon } from "@uvcdr/custom-form-system";
+import { CustomButton, Icon, CustomFormSection } from "@uvcdr/custom-form-system";
 import { useNotification } from "@uvcdr/confirm-notify-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import { useVinidoc } from "../context/VinidocContext";
 
 /**
@@ -21,9 +20,9 @@ const MergeFieldsCatalog: React.FC = () => {
   if (!mergeFields) return null;
 
   return (
-    <SectionCard
+    <CustomFormSection
       title="Balises de fusion"
-      icon="code"
+      icon={<Icon iconName="code" />}
       className="section-grid--full"
       description={
         <>
@@ -100,7 +99,7 @@ const MergeFieldsCatalog: React.FC = () => {
           </ul>
         </div>
       </div>
-    </SectionCard>
+    </CustomFormSection>
   );
 };
 

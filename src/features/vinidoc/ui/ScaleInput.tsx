@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React from "react";
+import { CustomButton, CustomButtonGroup } from "@uvcdr/custom-form-system";
 
 interface ScaleInputProps {
   label: string;
@@ -15,9 +16,8 @@ interface ScaleInputProps {
 
 /**
  * Échelle à niveaux (intensité aromatique, bouche, fruit) rendue comme une
- * jauge segmentée : survol = aperçu, clic = sélection, nouveau clic sur la
- * valeur courante = effacement.
- * Clavier : flèches / Début / Fin pour changer, Suppr / Retour arrière pour effacer.
+ * jauge (CustomButtonGroup en mode `gauge`) : clic = sélection jusqu'à ce
+ * niveau, nouveau clic sur la valeur courante = effacement.
  */
 const ScaleInput: React.FC<ScaleInputProps> = ({
   label,
@@ -28,36 +28,7 @@ const ScaleInput: React.FC<ScaleInputProps> = ({
   maxLabel,
   readOnly,
 }) => {
-  const [hover, setHover] = useState<number | null>(null);
-  const segments = useRef<(HTMLButtonElement | null)[]>([]);
-  const last = steps.length - 1;
-  const max = steps[last];
-  // Comparaisons par position : les valeurs n'ont pas à être contiguës.
-  const valueIdx = value == null ? -1 : steps.indexOf(value);
-  const shownIdx = !readOnly && hover != null ? hover : valueIdx;
-
-  const select = (idx: number | null) => {
-    if (readOnly) return;
-    onChange(idx == null ? null : steps[idx]);
-    if (idx != null) segments.current[idx]?.focus();
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const next: Record<string, number | null> = {
-      ArrowRight: Math.min(last, valueIdx + 1),
-      ArrowUp: Math.min(last, valueIdx + 1),
-      ArrowLeft: Math.max(0, valueIdx - 1),
-      ArrowDown: Math.max(0, valueIdx - 1),
-      Home: 0,
-      End: last,
-      Delete: null,
-      Backspace: null,
-    };
-    if (!(e.key in next)) return;
-    e.preventDefault();
-    select(next[e.key]);
-  };
-
+  const max = steps[steps.length - 1];
   const canErase = !readOnly && value != null;
 
   return (
@@ -77,53 +48,35 @@ const ScaleInput: React.FC<ScaleInputProps> = ({
         </span>
       </div>
 
-      <div
-        className="vd-scale__track"
-        role="radiogroup"
+      <CustomButtonGroup
+        attached
+        fullWidth
+        shape="pill"
+        variant="secondary"
+        size="sm"
         aria-label={label}
-        aria-readonly={readOnly || undefined}
-        style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}
-        onMouseLeave={() => setHover(null)}
-        onKeyDown={onKeyDown}
+        selectedColor="info"
+        selectedAppearance="solid"
+        selectionMode="gauge"
+        allowEmpty
+        pressEffect={false}
+        disabled={readOnly}
+        value={value == null ? null : String(value)}
+        onValueChange={(v) => {
+          if (Array.isArray(v)) return;
+          onChange(v === null ? null : Number(v));
+        }}
       >
-        {steps.map((step, idx) => {
-          const on = idx <= shownIdx;
-          return (
-            <button
-              key={step}
-              ref={(el) => {
-                segments.current[idx] = el;
-              }}
-              type="button"
-              role="radio"
-              aria-checked={value === step}
-              aria-label={`${label} : ${step} sur ${max}`}
-              // Focus itinérant : seul le segment courant (ou le 1er) est tabulable.
-              tabIndex={readOnly ? -1 : idx === Math.max(valueIdx, 0) ? 0 : -1}
-              disabled={readOnly}
-              className={[
-                "vd-scale__segment",
-                on && "vd-scale__segment--on",
-                on &&
-                  hover != null &&
-                  !readOnly &&
-                  "vd-scale__segment--preview",
-                value === step && "vd-scale__segment--current",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              // Niveau relatif 0 → 1 : la teinte s'adapte au nombre de segments.
-              style={
-                { "--vd-scale-ratio": last > 0 ? idx / last : 1 } as React.CSSProperties
-              }
-              onMouseEnter={() => setHover(idx)}
-              onClick={() => select(value === step ? null : idx)}
-            >
-              {step}
-            </button>
-          );
-        })}
-      </div>
+        {steps.map((step) => (
+          <CustomButton
+            key={step}
+            value={String(step)}
+            aria-label={`${label} : ${step} sur ${max}`}
+          >
+            {step}
+          </CustomButton>
+        ))}
+      </CustomButtonGroup>
 
       <div
         className={`vd-scale__footer ${canErase ? "vd-scale__footer--erasable" : ""}`}

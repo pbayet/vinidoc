@@ -155,6 +155,8 @@ export interface SheetVersion extends SheetVersionSummary {
 
 export interface Sheet extends SheetCommon {
   SHTID: number;
+  /** Modèle PowerPoint présélectionné à la génération (hors contenu validé) */
+  DEFTPLID: number | null;
   STATUS: SheetStatus;
   LASTVER: number;
   CREUSR: string;
@@ -182,6 +184,8 @@ export interface SheetListItem {
   MODDAT: string;
   SUBUSR: string | null;
   SUBDAT: string | null;
+  /** Modèle PowerPoint présélectionné à la génération */
+  DEFTPLID: number | null;
   LIBELLE: string | null;
   LANGUAGES: string[];
   /**
@@ -304,6 +308,15 @@ export interface TemplateInspection {
   /** Longueurs invalides ou contradictoires saisies dans les balises */
   LENGTHWARNINGS: string[];
   WARNINGS: string[];
+}
+
+/** Résultat de GET /templates/:TPLID/preview (PDF rempli de faux texte). */
+export interface TemplatePreview {
+  TPLID: number;
+  URL: string;
+  ORIGINALNAME: string;
+  /** Aperçu déjà converti (pas de nouvelle conversion) */
+  CACHED: boolean;
 }
 
 /* ───────────────────────────── Génération ───────────────────────────── */

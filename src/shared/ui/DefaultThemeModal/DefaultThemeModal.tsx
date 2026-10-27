@@ -1,15 +1,8 @@
 import React from "react";
 import "./DefaultThemeModal.scss";
 import { Modal } from "@uvcdr/modal";
-import { CustomInputRadioButton } from "@uvcdr/custom-form-system";
-import { THEME_LABELS, type ThemePreference } from "../../lib/theme/theme";
 import { useUserTheme } from "../../lib/theme/userTheme";
-
-const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
-  { value: "light", icon: "sun" },
-  { value: "dark", icon: "moon" },
-  { value: "system", icon: "desktop" },
-];
+import ThemePicker from "../ThemePicker/ThemePicker";
 
 interface DefaultThemeModalProps {
   isOpen: boolean;
@@ -41,28 +34,14 @@ const DefaultThemeModal: React.FC<DefaultThemeModalProps> = ({
         Thème utilisé par toutes vos applications, sauf celles pour lesquelles
         vous avez choisi un thème spécifique.
       </p>
-      <div
-        className="default-theme-modal__options"
-        role="radiogroup"
-        aria-label="Thème par défaut"
-      >
-        {THEME_OPTIONS.map((option) => (
-          <CustomInputRadioButton
-            key={option.value}
-            label={THEME_LABELS[option.value]}
-            name="defaultThemePreference"
-            value={option.value}
-            checked={theme?.default === option.value}
-            onChange={() => void setDefaultTheme(option.value)}
-            disabled={isLoading || isSaving || loadError}
-            inputSize="sm"
-            states={{
-              unchecked: { variant: "neutral", icon: option.icon },
-              checked: { variant: "primary", icon: option.icon },
-            }}
-          />
-        ))}
-      </div>
+      <ThemePicker
+        value={theme?.default ?? null}
+        onChange={(value) => {
+          if (value) void setDefaultTheme(value);
+        }}
+        disabled={isLoading || isSaving || loadError}
+        ariaLabel="Thème par défaut"
+      />
       {loadError && (
         <p className="default-theme-modal__error">
           Impossible de charger votre préférence de thème.

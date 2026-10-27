@@ -8,8 +8,8 @@ import {
   Icon,
   useField,
   useFormContext,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import LimitedTextarea from "../ui/LimitedTextarea";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";
@@ -186,18 +186,18 @@ const SheetCreateForm: React.FC<SheetCreateFormProps> = ({
             <DirtyReporter onChange={setDirty} />
 
             <div className="section-grid">
-              <SectionCard
+              <CustomFormSection
                 title="Caractéristiques"
-                icon="id-card"
+                icon={<Icon iconName="id-card" />}
                 className="section-grid--full"
                 description="Données communes à toutes les langues."
               >
                 <CommonFormFields />
-              </SectionCard>
+              </CustomFormSection>
 
-              <SectionCard
+              <CustomFormSection
                 title="Textes"
-                icon="language"
+                icon={<Icon iconName="language" />}
                 className="section-grid--full"
                 description={`Textes en ${languageName(languages, defaultLng)} (langue de référence). Les traductions pourront être ajoutées après la création.`}
               >
@@ -206,7 +206,7 @@ const SheetCreateForm: React.FC<SheetCreateFormProps> = ({
                     <FormLimitedText key={f} name={f} />
                   ))}
                 </div>
-              </SectionCard>
+              </CustomFormSection>
             </div>
 
             <CustomFormError />

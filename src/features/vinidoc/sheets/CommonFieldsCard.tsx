@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, type Ref } from "react";
 import {
   CustomForm,
   CustomFormReset,
   CustomFormSubmit,
+  type CustomFormHandle,
   Icon,
   useFormContext,
+  CustomFormSection,
 } from "@uvcdr/custom-form-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import CommonFormFields from "./CommonFormFields";
 import {
   commonToForm,
@@ -25,10 +26,14 @@ interface CommonFieldsCardProps {
   onSave: (value: SheetCommon) => Promise<void>;
   /** Informe le parent d'une saisie non enregistrée (garde-fou de soumission). */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Accès au formulaire (enregistrement général depuis SheetEditor). */
+  formRef?: Ref<CustomFormHandle<CommonFormValues>>;
 }
 
 /** Remonte l'état « modifié » du formulaire au parent. */
-const DirtyReporter: React.FC<{ onChange?: (dirty: boolean) => void }> = ({ onChange }) => {
+const DirtyReporter: React.FC<{ onChange?: (dirty: boolean) => void }> = ({
+  onChange,
+}) => {
   const { dirty } = useFormContext();
   useEffect(() => {
     onChange?.(dirty);
@@ -41,7 +46,13 @@ const DirtyReporter: React.FC<{ onChange?: (dirty: boolean) => void }> = ({ onCh
  * Caractéristiques communes à toutes les langues (édition d'une fiche
  * existante) : identité du vin, températures, échelles, cépages.
  */
-const CommonFieldsCard: React.FC<CommonFieldsCardProps> = ({ value, readOnly, onSave, onDirtyChange }) => {
+const CommonFieldsCard: React.FC<CommonFieldsCardProps> = ({
+  value,
+  readOnly,
+  onSave,
+  onDirtyChange,
+  formRef,
+}) => {
   // Référence stable tant que le contenu enregistré ne change pas : un
   // rechargement de la fiche pour une autre raison (traduction enregistrée)
   // ne réinitialise pas une saisie en cours.
@@ -51,6 +62,7 @@ const CommonFieldsCard: React.FC<CommonFieldsCardProps> = ({ value, readOnly, on
 
   return (
     <CustomForm<CommonFormValues>
+      ref={formRef}
       className="section-grid--full"
       initialValues={initial}
       defaultValues={initial}
@@ -62,33 +74,37 @@ const CommonFieldsCard: React.FC<CommonFieldsCardProps> = ({ value, readOnly, on
       inputSize="xs"
     >
       {(form) => (
-        <SectionCard
+        <CustomFormSection
           title="Caractéristiques"
-          icon="id-card"
+          icon={<Icon iconName="id-card" />}
           description="Données communes à toutes les langues."
-          actions={
-            !readOnly && (
-              <>
-                {form.dirty && (
-                  <CustomFormReset size="xs" variant="ghost" leftIcon={<Icon iconName="rotate-left" />}>
-                    Annuler
-                  </CustomFormReset>
-                )}
-                <CustomFormSubmit
-                  size="xs"
-                  variant="primary"
-                  leftIcon={<Icon iconName="floppy-disk" />}
-                  disabled={!form.dirty || !form.isValid || form.submitting}
-                >
-                  Enregistrer
-                </CustomFormSubmit>
-              </>
-            )
-          }
         >
           <DirtyReporter onChange={onDirtyChange} />
           <CommonFormFields />
-        </SectionCard>
+          {!readOnly && (
+            <div className="vd-section-actions">
+              {form.dirty && (
+                <CustomFormReset
+                  shortcut="Mod+Z"
+                  bindShortcut
+                  size="xs"
+                  variant="danger-outline"
+                  leftIcon={<Icon iconName="rotate-left" />}
+                >
+                  Annuler
+                </CustomFormReset>
+              )}
+              <CustomFormSubmit
+                size="xs"
+                variant="primary"
+                leftIcon={<Icon iconName="floppy-disk" />}
+                disabled={!form.dirty || !form.isValid || form.submitting}
+              >
+                Enregistrer
+              </CustomFormSubmit>
+            </div>
+          )}
+        </CustomFormSection>
       )}
     </CustomForm>
   );

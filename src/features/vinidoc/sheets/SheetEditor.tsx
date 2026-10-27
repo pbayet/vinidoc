@@ -1,9 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import { CustomButton, Icon } from "@uvcdr/custom-form-system";
+import {
+  CustomButton,
+  Icon,
+  type CustomFormHandle,
+  CustomFormSection,
+} from "@uvcdr/custom-form-system";
 import { Modal, ModalBody } from "@uvcdr/modal";
 import { useConfirm } from "@uvcdr/confirm-notify-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import {
   useWebSocket,
   type WsMessage,
@@ -15,8 +25,9 @@ import CommentModal from "../ui/CommentModal";
 import EventsTimeline from "../ui/EventsTimeline";
 import CommonFieldsCard from "./CommonFieldsCard";
 import TextsCard from "./TextsCard";
-import CheckCard from "./CheckCard";
+import TemplatesCard from "./TemplatesCard";
 import VersionModal from "./VersionModal";
+import { formToCommon, type CommonFormValues } from "./commonForm";
 import { formatDateTime, sheetTitle } from "../lib/format";
 import {
   commonFromSheet,
@@ -67,6 +78,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
   const [action, setAction] = useState<WorkflowAction>(null);
   const [versionToShow, setVersionToShow] = useState<number | null>(null);
   const [remoteChange, setRemoteChange] = useState(false);
+  const commonFormRef = useRef<CustomFormHandle<CommonFormValues>>(null);
 
   /* ───────────────────────── Chargement ───────────────────────── */
 
@@ -204,6 +216,59 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
     }
   };
 
+  // Enregistrement général : caractéristiques puis chaque langue modifiée,
+  // en chaînant le ROWVER renvoyé par chaque écriture.
+  const saveAll = async () => {
+    if (!sheet) return;
+    const form = commonFormRef.current;
+    if (commonDirty && form) {
+      const errors = await form.validateForm();
+      if (Object.values(errors).some(Boolean)) {
+        // Le submit refuse le formulaire invalide et affiche les erreurs.
+        await form.submitForm();
+        return;
+      }
+    }
+    const writes: ((ROWVER: string, last: boolean) => Promise<string>)[] = [];
+    if (commonDirty && form) {
+      const common = formToCommon(form.getValues());
+      writes.push(async (ROWVER, last) => {
+        const r = await api.updateSheet(
+          sheet.SHTID,
+          { ...common, ROWVER },
+          last ? { successMessage: "Fiche enregistrée." } : undefined,
+        );
+        return r.ROWVER;
+      });
+    }
+    const savedTextLngs: string[] = [];
+    for (const lng of dirtyLngs) {
+      const text = texts[lng];
+      writes.push(async (ROWVER, last) => {
+        const r = await api.saveTranslation(
+          sheet.SHTID,
+          lng,
+          { ...text, ROWVER },
+          last ? { successMessage: "Fiche enregistrée." } : undefined,
+        );
+        savedTextLngs.push(lng);
+        return r.ROWVER;
+      });
+    }
+
+    setSaving(true);
+    try {
+      let rowver = sheet.ROWVER;
+      for (const [i, write] of writes.entries())
+        rowver = await write(rowver, i === writes.length - 1);
+    } catch {
+      /* toast déjà affiché ; on recharge ce qui a pu être enregistré */
+    } finally {
+      setSaving(false);
+    }
+    await load({ lngs: savedTextLngs });
+  };
+
   const runAction = async (comment: string) => {
     if (!sheet || !action) return;
     const x = { setLoading: setSaving };
@@ -298,17 +363,18 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
       {canDelete && (
         <CustomButton
           size="xs"
-          variant="danger-ghost"
+          variant="danger-outline"
           leftIcon={<Icon iconName="trash" />}
           onClick={() => setAction("delete")}
         >
           Supprimer
         </CustomButton>
       )}
+
       {canSubmit && (
         <CustomButton
           size="xs"
-          variant="primary"
+          variant="warning"
           leftIcon={<Icon iconName="paper-plane" />}
           disabled={hasUnsaved || saving}
           title={
@@ -321,6 +387,22 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
           Soumettre au marketing
         </CustomButton>
       )}
+
+      {canEdit && (
+        <CustomButton
+          size="xs"
+          variant="primary"
+          leftIcon={<Icon iconName="floppy-disk" />}
+          disabled={!hasUnsaved || saving}
+          title="Enregistrer les caractéristiques et les textes modifiés (toutes langues)"
+          shortcut="Alt+S"
+          bindShortcut
+          onClick={() => void saveAll()}
+        >
+          Enregistrer
+        </CustomButton>
+      )}
+
       {canValidate && (
         <>
           <CustomButton
@@ -430,6 +512,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
                 readOnly={!canEdit}
                 onSave={saveCommon}
                 onDirtyChange={setCommonDirty}
+                formRef={commonFormRef}
               />
             )}
 
@@ -460,15 +543,17 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
 
             {sheet && (
               <>
-                <CheckCard
-                  SHTID={sheet.SHTID}
+                <TemplatesCard
+                  sheet={sheet}
                   lng={activeLng}
+                  canEdit={rights.EDIT || rights.VALIDATE}
                   hasUnsavedChanges={hasUnsaved}
+                  onSaved={() => void load({})}
                 />
 
-                <SectionCard
+                <CustomFormSection
                   title="Versions validées"
-                  icon="code-branch"
+                  icon={<Icon iconName="code-branch" />}
                   description="Contenus figés à chaque validation marketing ; la plus récente sert à la génération."
                 >
                   {sheet.VERSIONS.length === 0 ? (
@@ -497,15 +582,15 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
                       ))}
                     </ul>
                   )}
-                </SectionCard>
+                </CustomFormSection>
 
-                <SectionCard
+                <CustomFormSection
                   title="Historique"
-                  icon="clock-rotate-left"
+                  icon={<Icon iconName="clock-rotate-left" />}
                   className="section-grid--full"
                 >
                   <EventsTimeline events={sheet.EVENTS} />
-                </SectionCard>
+                </CustomFormSection>
               </>
             )}
           </div>

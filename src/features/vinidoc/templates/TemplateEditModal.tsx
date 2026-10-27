@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Modal, ModalBody } from "@uvcdr/modal";
 import {
   CustomButton,
@@ -19,7 +25,6 @@ import {
   validators,
 } from "@uvcdr/custom-form-system";
 import { useConfirm, useNotification } from "@uvcdr/confirm-notify-system";
-import SectionCard from "../../../shared/ui/SectionCard/ui/SectionCard";
 import StepBadge from "../ui/StepBadge";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";
@@ -172,7 +177,7 @@ const TemplateEditModal: React.FC<TemplateEditModalProps> = ({
       headerActions={
         <CustomButton
           size="xs"
-          variant="danger-ghost"
+          variant="danger-outline"
           leftIcon={<Icon iconName="trash" />}
           disabled={saving}
           onClick={() => void remove()}
@@ -223,9 +228,9 @@ const TemplateEditWorkspace: React.FC<TemplateEditWorkspaceProps> = ({
   return (
     <div className="vd-generate vd-dark-text">
       <div className="vd-generate__main">
-        <SectionCard
+        <CustomFormSection
           title="Paramètres du modèle"
-          icon="sliders"
+          icon={<Icon iconName="sliders" />}
           description="Les modifications sont appliquées ensemble depuis le récapitulatif."
         >
           <CustomFormSection
@@ -241,7 +246,9 @@ const TemplateEditWorkspace: React.FC<TemplateEditWorkspaceProps> = ({
                 name="TPLNAM"
                 label="Nom"
                 maxLength={150}
-                validate={validators.required("Le nom du modèle est obligatoire.")}
+                validate={validators.required(
+                  "Le nom du modèle est obligatoire.",
+                )}
               />
               <CustomFormSelect
                 name="LNGCOD"
@@ -280,7 +287,10 @@ const TemplateEditWorkspace: React.FC<TemplateEditWorkspaceProps> = ({
             {template.FILEURL && (
               <FileAttachmentCards
                 files={[
-                  toTemplateViewerFile({ ...template, FILEURL: template.FILEURL }),
+                  toTemplateViewerFile({
+                    ...template,
+                    FILEURL: template.FILEURL,
+                  }),
                 ]}
               />
             )}
@@ -382,7 +392,7 @@ const TemplateEditWorkspace: React.FC<TemplateEditWorkspaceProps> = ({
               </>
             )}
           </CustomFormSection>
-        </SectionCard>
+        </CustomFormSection>
       </div>
 
       <aside className="vd-generate__aside">
