@@ -3,6 +3,7 @@ import type { VinidocApi } from "../api/useVinidocApi";
 import type {
   CheckReport,
   ContentSource,
+  LocalSheetChanges,
   SheetListItem,
   SheetSnapshot,
   SheetVersion,
@@ -15,6 +16,10 @@ interface GenerationSourceParams {
   sheet?: SheetListItem;
   lng: string;
   template?: Template;
+  /** Article PFI : balises logistiques contrôlées */
+  article?: string;
+  /** Fiche ajustée pour cette génération : contrôlée telle qu'elle sera générée */
+  local?: LocalSheetChanges | null;
 }
 
 export interface GenerationSource {
@@ -54,6 +59,8 @@ export function useGenerationSource({
   sheet,
   lng,
   template,
+  article,
+  local,
 }: GenerationSourceParams): GenerationSource {
   const [content, setContent] = useState<SheetSnapshot | null>(null);
   const [version, setVersion] = useState<SheetVersion | null>(null);
@@ -109,7 +116,13 @@ export function useGenerationSource({
     api
       .checkSheet(
         content.SHTID,
-        { LNGCOD: lng, TPLID: tplid, SOURCE: source },
+        {
+          LNGCOD: lng,
+          TPLID: tplid,
+          SOURCE: source,
+          COD_ARTICLE: article || undefined,
+          ...local,
+        },
         { setLoading: setChecking, silentError: true },
       )
       .then((r) => !cancelled && setCheck(r))
@@ -117,7 +130,7 @@ export function useGenerationSource({
     return () => {
       cancelled = true;
     };
-  }, [api, content, source, tplid, lng, lngAvailable]);
+  }, [api, content, source, tplid, lng, lngAvailable, article, local]);
 
   return {
     content,

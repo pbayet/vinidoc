@@ -12,6 +12,7 @@ import { useAppVersion } from "../../hooks/useAppVersion";
 import { useConfirm } from "@uvcdr/confirm-notify-system";
 import AppSwitcherModal from "./AppSwitcherModal";
 import { useVinidoc } from "../../../vinidoc/context/VinidocContext";
+import { useMergeFieldsOnly } from "../../../auth/hooks/useMergeFieldsOnly";
 import { isUrl } from "../../../../shared/lib/utils/string.functions";
 
 // Exportée : réutilisée par une éventuelle page de paramètres qui écrirait
@@ -82,6 +83,9 @@ const Nav: React.FC<NavProps> = ({
   // utilisateur sans ce droit ne voit ni les liens, ni les pages si
   // atteintes directement par URL.
   const { rights, pendingCount } = useVinidoc();
+  // ⚠️ TEMPORAIRE — accès restreint : liens « Modèles PowerPoint » et
+  // « Paramètres » seuls
+  const mergeFieldsOnly = useMergeFieldsOnly();
   const [isAppSwitcherModalOpen, setAppSwitcherModalOpen] = useState(false);
 
   // Changement d'utilisateur (admin uniquement) : `isAdmin` gouverne
@@ -119,6 +123,7 @@ const Nav: React.FC<NavProps> = ({
           icon: "file-powerpoint",
           path: "/",
           isActive: (p) => p === "/",
+          show: !mergeFieldsOnly,
         },
         {
           label: "Fiches œnologiques",
@@ -126,6 +131,7 @@ const Nav: React.FC<NavProps> = ({
           path: "/oenologie",
           isActive: (p) => p === "/oenologie" || p.startsWith("/oenologie/"),
           badge: rights.VALIDATE ? pendingCount : undefined,
+          show: !mergeFieldsOnly,
         },
       ],
     },
@@ -137,7 +143,7 @@ const Nav: React.FC<NavProps> = ({
           icon: "object-group",
           path: "/modeles",
           isActive: (p) => p === "/modeles" || p.startsWith("/modeles/"),
-          show: rights.TEMPLATES,
+          show: rights.TEMPLATES || mergeFieldsOnly,
         },
       ],
     },

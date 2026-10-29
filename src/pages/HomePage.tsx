@@ -107,6 +107,7 @@ const HomePage: React.FC = () => {
           initialSheetId={sheetId}
           onSheetChange={onSheetChange}
           onGenerated={() => void loadHistory()}
+          onSheetsChanged={refreshLists}
         />
         <GenerationHistory
           history={history}

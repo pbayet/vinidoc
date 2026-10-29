@@ -21,6 +21,7 @@ import {
 } from "../features/vinidoc/templates/templateUtils";
 import { formatBytes, formatDateTime } from "../features/vinidoc/lib/format";
 import type { Template } from "../entities/vinidoc/vinidoc.types";
+import { useMergeFieldsOnly } from "../features/auth/hooks/useMergeFieldsOnly";
 
 /** Route d'ajout d'un modèle (`/modeles/new`). */
 export const NEW_TEMPLATE_PARAM = "new";
@@ -47,6 +48,8 @@ const ModelesPage: React.FC = () => {
   const closeModal = useCallback(() => navigate("/modeles"), [navigate]);
   const viewer = useFileViewer();
   const preview = useTemplatePreview();
+  // ⚠️ TEMPORAIRE — accès restreint : section « Balises de fusion » seule
+  const mergeFieldsOnly = useMergeFieldsOnly();
 
   // Fichiers des modèles : navigation précédent/suivant dans la liseuse.
   const files = useMemo(
@@ -74,12 +77,13 @@ const ModelesPage: React.FC = () => {
   };
 
   const load = useCallback(async () => {
+    if (mergeFieldsOnly) return;
     try {
       setTemplates(await api.listTemplates({}, { setLoading }));
     } catch {
       /* toast déjà affiché */
     }
-  }, [api]);
+  }, [api, mergeFieldsOnly]);
 
   useEffect(() => {
     void load();
@@ -92,6 +96,18 @@ const ModelesPage: React.FC = () => {
 
   if (editId != null && (!Number.isInteger(editId) || editId <= 0))
     return <Navigate to="/modeles" replace />;
+
+  if (mergeFieldsOnly) {
+    // Ni import (/modeles/new) ni édition (/modeles/:tplid)
+    if (tplid) return <Navigate to="/modeles" replace />;
+    return (
+      <PageLayout title="Modèles PowerPoint">
+        <div className="section-grid">
+          <MergeFieldsCatalog />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout

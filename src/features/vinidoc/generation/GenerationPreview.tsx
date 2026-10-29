@@ -112,7 +112,7 @@ const GenerationPreview: React.FC<GenerationPreviewProps> = ({
     idle: "Choisissez un modèle pour contrôler la longueur des textes.",
     pending: `Vérification face au modèle « ${template?.TPLNAM} »…`,
     ok: `Tous les textes tiennent dans le modèle « ${template?.TPLNAM} ».`,
-    ko: `${blocking.length} problème(s) avec « ${template?.TPLNAM} » : corrigez la fiche (œnologie) puis faites-la revalider, ou choisissez un autre modèle.`,
+    ko: `${blocking.length} problème(s) avec « ${template?.TPLNAM} » : corrigez les textes (bouton « Corriger les textes et générer ») ou choisissez un autre modèle.`,
   }[state];
 
   // KO : problèmes affichés d'office ; OK : détail replié par défaut.

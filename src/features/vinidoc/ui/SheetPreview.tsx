@@ -28,13 +28,13 @@ interface SheetPreviewProps {
   checkedTags?: CheckedTag[];
 }
 
-/** Blocs de texte longs, dans l'ordre de lecture de la fiche. */
-const TEXT_BLOCKS: TranslationField[] = [
-  "TERROIR",
-  "VINIF",
-  "DEGUST",
-  "ACCORDS",
-  "ACCEXPL",
+/** Blocs de texte longs, dans l'ordre de lecture de la fiche (avec leur icône). */
+const TEXT_BLOCKS: { field: TranslationField; icon: string }[] = [
+  { field: "TERROIR", icon: "mountain-sun" },
+  { field: "VINIF", icon: "wine-bottle" },
+  { field: "DEGUST", icon: "wine-glass" },
+  { field: "ACCORDS", icon: "utensils" },
+  { field: "ACCEXPL", icon: "comment-dots" },
 ];
 
 const ISSUE_LABELS = {
@@ -190,7 +190,7 @@ const SheetPreview: React.FC<SheetPreviewProps> = ({
         </div>
       ) : (
         <div className="vd-sheet-card__texts">
-          {TEXT_BLOCKS.map((f) => {
+          {TEXT_BLOCKS.map(({ field: f, icon }) => {
             const value = translation[f] ?? "";
             const { tag, ko, title } = fieldCheck(f);
             return (
@@ -199,6 +199,7 @@ const SheetPreview: React.FC<SheetPreviewProps> = ({
                 className={`vd-sheet-text${ko ? " vd-sheet-text--ko" : ""}`}
               >
                 <header className="vd-sheet-text__head">
+                  <Icon iconName={icon} />
                   <h5>{TRANSLATION_LABELS[f].label}</h5>
                   {tag && (
                     <span className="vd-sheet-text__count" title={title}>

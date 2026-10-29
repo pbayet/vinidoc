@@ -48,7 +48,10 @@ export const UnsavedChangesGuard: React.FC = () => {
  * échelles (les cépages sont saisis avec les textes traduisibles). À placer sous un <CustomForm> dont les valeurs
  * contiennent CommonFormValues.
  */
-const CommonFormFields: React.FC = () => {
+const CommonFormFields: React.FC<{
+  /** Code vrac non modifiable (ajustement local d'une génération : il relie la fiche à l'article) */
+  lockCodvrac?: boolean;
+}> = ({ lockCodvrac = false }) => {
   const { colors, defaultLng } = useVinidoc();
   const { values } = useFormContext<CommonFormValues>();
 
@@ -61,7 +64,15 @@ const CommonFormFields: React.FC = () => {
   return (
     <>
       <CustomFormGrid columns="repeat(auto-fit, minmax(320px, 1fr))">
-        <CustomFormInput name="CODVRAC" label="Code vrac" maxLength={30} placeholder="ex. VHL12345" validate={codvracValidator} />
+        <CustomFormInput
+          name="CODVRAC"
+          label="Code vrac"
+          maxLength={30}
+          placeholder="ex. VHL12345"
+          validate={codvracValidator}
+          disabled={lockCodvrac}
+          helpText={lockCodvrac ? "Non modifiable : relie la fiche à l'article PFI." : undefined}
+        />
         <CustomFormInput
           name="MILLESIME"
           label="Millésime"

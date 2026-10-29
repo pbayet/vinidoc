@@ -15,6 +15,8 @@ export interface Rights {
   VALIDATE: boolean;
   /** Administration des modèles PowerPoint */
   TEMPLATES: boolean;
+  /** Paramètres de l'application (calculs logistiques, réservation) */
+  PARAMS: boolean;
   /** Génération des fiches techniques */
   GENERATE: boolean;
 }
@@ -65,11 +67,25 @@ export interface TextMergeField {
   /** Longueur max la plus stricte parmi les modèles actifs */
   MAXLEN: number | null;
   LIMITS: TagLimit[];
+  /** false : pas de donnée sur la fiche (logistique, issue de l'article PFI) */
+  AVAILABLE?: boolean;
+  /** Balise facultative : jamais signalée absente d'un modèle */
+  OPTIONAL?: boolean;
+}
+
+/** Bloc conditionnel « badge:NOM » : motif et noms possibles. */
+export interface BadgeMergeField {
+  /** Famille (Certifications, Couleur, échelle…) */
+  GROUP: string;
+  PATTERN: string;
+  /** Liste exhaustive des noms de forme possibles */
+  NAMES: string[];
+  LABEL: string;
 }
 
 export interface MergeFields {
   TEXT: TextMergeField[];
-  BADGES: { PATTERN: string; LABEL: string }[];
+  BADGES: BadgeMergeField[];
   IMAGES: { TAG: string; LABEL: string }[];
 }
 
@@ -124,6 +140,7 @@ export interface SheetEvent {
     | "TRANSLATION_DELETED"
     | "SUBMITTED"
     | "VALIDATED"
+    | "VALIDATED_UPDATED"
     | "REJECTED"
     | "DELETED";
   FROMSTS: SheetStatus | null;
@@ -153,6 +170,22 @@ export interface SheetVersion extends SheetVersionSummary {
   SNAPSHOT: SheetSnapshot;
 }
 
+/**
+ * Réservation d'une fiche ouverte en modification (RG-04) : les autres
+ * utilisateurs la consultent en lecture seule jusqu'à son enregistrement,
+ * sa fermeture ou l'expiration après inactivité.
+ */
+export interface SheetLock {
+  USR: string;
+  USRNAME: string;
+  /** Prise de la réservation */
+  LOCKDAT: string;
+  /** Dernière activité du titulaire */
+  LASTSEEN: string;
+  /** Réservation de l'utilisateur courant */
+  MINE: boolean;
+}
+
 export interface Sheet extends SheetCommon {
   SHTID: number;
   /** Modèle PowerPoint présélectionné à la génération (hors contenu validé) */
@@ -169,6 +202,8 @@ export interface Sheet extends SheetCommon {
   TRANSLATIONS: Record<string, Translation>;
   EVENTS: SheetEvent[];
   VERSIONS: SheetVersionSummary[];
+  /** Réservation active (quel que soit son titulaire), null si libre */
+  LOCK: SheetLock | null;
 }
 
 export interface SheetListItem {
@@ -319,9 +354,68 @@ export interface TemplatePreview {
   CACHED: boolean;
 }
 
+/* ───────────────────────────── Articles PFI (DWH) ───────────────────────────── */
+
+/** Article produit fini (GET /articles). */
+export interface ArticleSummary {
+  COD_ARTICLE: string;
+  LIBELLE: string | null;
+  LIBELLE_COURT: string | null;
+  MILLESIME: number | null;
+  STATUT: string | null;
+  /** Codes vrac (composants VHL) = SHEETS.CODVRAC */
+  CODVRACS: string[];
+  /** Recherche uniquement : une fiche œnologique existe pour l'un de ses codes vrac */
+  HASSHEET?: boolean;
+  /** Recherche uniquement : statut de la fiche utilisée (null sans fiche) */
+  SHEETSTATUS?: SheetStatus | null;
+}
+
+/** Balise logistique {{LOG.*}} alimentée par l'article. */
+export interface LogisticsField {
+  TAG: string;
+  LABEL: string;
+  VALUE: string;
+  /** Valeur calculée par Vinidoc (poids pleins, hauteur palette) */
+  CALCULATED: boolean;
+  /** Détail du calcul, ou donnée manquante (valeurs calculées uniquement) */
+  DETAIL: string | null;
+}
+
+/** Fiche d'un code vrac de l'article. */
+export interface ArticleSheet {
+  SHTID: number;
+  CODVRAC: string;
+  MILLESIME: number | null;
+  APPELL: string;
+  COLCOD: ColorCode;
+  STATUS: SheetStatus;
+  LASTVER: number;
+}
+
+/** Article détaillé (GET /articles/:COD_ARTICLE). */
+export interface Article extends ArticleSummary {
+  /** Fiches de ses codes vrac, même millésime d'abord */
+  SHEETS: ArticleSheet[];
+  LOGISTICS: LogisticsField[];
+}
+
 /* ───────────────────────────── Génération ───────────────────────────── */
 
 export type OutputFormat = "pdf" | "pptx";
+
+/**
+ * Fiche ajustée pour une génération, sans enregistrement : caractéristiques
+ * complètes (le code vrac reste celui de la fiche) et textes de la langue
+ * générée. Appliquée par l'API au contrôle comme à la génération.
+ */
+export interface LocalSheetChanges {
+  SHEET?: SheetCommon;
+  TRANSLATION?: Partial<TranslationValues>;
+}
+
+/** Conditionnement de la photo : groupe « badge:PHOTO_<TYPE> » conservé. */
+export type Packaging = "BOUTEILLE" | "BIB" | "CANETTE";
 
 /**
  * Contenu utilisé pour générer : dernière version validée (fiche au statut
@@ -341,6 +435,8 @@ export interface GenerationResult {
   FORMAT: OutputFormat;
   HVE: boolean;
   BIO: boolean;
+  /** Article PFI (données logistiques) ; null = sans article */
+  COD_ARTICLE: string | null;
   FILECODE: string;
   ORIGINALNAME: string;
   URL: string;
@@ -361,10 +457,26 @@ export interface Generation {
   FORMAT: OutputFormat;
   HVE: boolean;
   BIO: boolean;
+  /** Article PFI (données logistiques) ; null = sans article */
+  COD_ARTICLE: string | null;
   FILECODE: string;
   CREUSR: string;
   CREDAT: string;
   ORIGINALNAME: string | null;
   SIZEBYTES: number | null;
   URL: string | null;
+}
+
+/* ───────────────────────────── Paramètres ───────────────────────────── */
+
+/** Paramètre de l'application (GET /params), modifiable sans développement. */
+export interface AppParam {
+  PRMKEY: string;
+  PRMVAL: number;
+  LABEL: string;
+  UNIT: string | null;
+  MINVAL: number | null;
+  MAXVAL: number | null;
+  MODUSR: string;
+  MODDAT: string;
 }

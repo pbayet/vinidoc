@@ -28,6 +28,8 @@ interface TextsCardProps {
   onDelete?: (lng: string) => void;
   /** Recopie les textes d'une autre langue comme base de traduction */
   onCopyFrom?: (from: string, to: string) => void;
+  /** Remplace la description par défaut (création / édition) */
+  description?: string;
 }
 
 /**
@@ -48,6 +50,7 @@ const TextsCard: React.FC<TextsCardProps> = ({
   onReset,
   onDelete,
   onCopyFrom,
+  description,
 }) => {
   const { languages, defaultLng, mergeFields } = useVinidoc();
   const visibleLanguages = onlyLng
@@ -72,9 +75,10 @@ const TextsCard: React.FC<TextsCardProps> = ({
       icon={<Icon iconName="language" />}
       className="section-grid--full"
       description={
-        onlyLng
+        description ??
+        (onlyLng
           ? `Textes en ${languageName(languages, onlyLng)} (langue de référence). Les traductions pourront être ajoutées après la création.`
-          : "Cépages, terroir, vinification, dégustation, garde et accords — une version par langue. La langue de référence (★) est obligatoire pour soumettre la fiche."
+          : "Cépages, terroir, vinification, dégustation, garde et accords — une version par langue. La langue de référence (★) est obligatoire pour soumettre la fiche.")
       }
     >
       {visibleLanguages.length > 1 && (

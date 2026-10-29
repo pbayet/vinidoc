@@ -8,6 +8,10 @@
   &--full {
     grid-column: 1 / -1;
   }
+
+  &--half {
+    grid-column: 0;
+  }
 }
 
 // Zone "à venir" : contenu à brancher ultérieurement

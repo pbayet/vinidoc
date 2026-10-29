@@ -26,7 +26,7 @@ import type {
 // Les droits viennent de l'API (services configurés côté serveur) : ce sont
 // eux qui pilotent l'accès aux pages et l'affichage des actions.
 
-const NO_RIGHTS: Rights = { EDIT: false, VALIDATE: false, TEMPLATES: false, GENERATE: false };
+const NO_RIGHTS: Rights = { EDIT: false, VALIDATE: false, TEMPLATES: false, PARAMS: false, GENERATE: false };
 
 interface VinidocContextValue {
   /** true tant que /me n'a pas répondu */

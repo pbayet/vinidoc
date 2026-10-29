@@ -2,17 +2,23 @@ import { useMemo } from "react";
 import { useAuth } from "@uvcdr/api-auth-system";
 import { apiRequest, type RequestOptions } from "../../../app/api/api";
 import type {
+  AppParam,
+  Article,
+  ArticleSummary,
   BulkSubmitResult,
   CheckReport,
   Generation,
   GenerationResult,
+  LocalSheetChanges,
   MeResponse,
   MergeFields,
   OutputFormat,
+  Packaging,
   Sheet,
   SheetCommon,
   SheetList,
   SheetListFilters,
+  SheetLock,
   SheetState,
   SheetVersion,
   SheetVersionSummary,
@@ -51,7 +57,9 @@ function clean(params: Params, forQuery: boolean): Record<string, Json> {
 }
 
 /** Champs multipart : uniquement des primitives (les vides sont envoyés en ""). */
-function multipartFields(params: Params): Record<string, string | number | boolean> {
+function multipartFields(
+  params: Params,
+): Record<string, string | number | boolean> {
   const out: Record<string, string | number | boolean> = {};
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined) continue;
@@ -102,37 +110,137 @@ export function createVinidocApi(token: string | undefined) {
     /* Fiches */
     listSheets: (filters: SheetListFilters, x?: RequestExtras) =>
       call<SheetList>("sheets", "GET", { ...filters }, x),
-    getSheet: (SHTID: number, x?: RequestExtras) => call<Sheet>(`sheets/${SHTID}`, "GET", {}, x),
+    getSheet: (SHTID: number, x?: RequestExtras) =>
+      call<Sheet>(`sheets/${SHTID}`, "GET", {}, x),
     createSheet: (
       body: SheetCommon & { TRANSLATION?: Partial<TranslationValues> },
       x?: RequestExtras,
     ) => call<SheetState>("sheets", "POST", { ...body }, x),
-    updateSheet: (SHTID: number, body: SheetCommon & { ROWVER: string }, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}`, "PUT", { ...body }, x),
-    deleteSheet: (SHTID: number, ROWVER: string, COMMENT?: string, x?: RequestExtras) =>
-      call<{ SHTID: number; DELETED: boolean }>(`sheets/${SHTID}`, "DELETE", { ROWVER, COMMENT }, x),
-    setDefaultTemplate: (SHTID: number, DEFTPLID: number | null, ROWVER: string, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}/default-template`, "PUT", { DEFTPLID, ROWVER }, x),
+    updateSheet: (
+      SHTID: number,
+      body: SheetCommon & { ROWVER: string },
+      x?: RequestExtras,
+    ) => call<SheetState>(`sheets/${SHTID}`, "PUT", { ...body }, x),
+    deleteSheet: (
+      SHTID: number,
+      ROWVER: string,
+      COMMENT?: string,
+      x?: RequestExtras,
+    ) =>
+      call<{ SHTID: number; DELETED: boolean }>(
+        `sheets/${SHTID}`,
+        "DELETE",
+        { ROWVER, COMMENT },
+        x,
+      ),
+    setDefaultTemplate: (
+      SHTID: number,
+      DEFTPLID: number | null,
+      ROWVER: string,
+      x?: RequestExtras,
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/default-template`,
+        "PUT",
+        { DEFTPLID, ROWVER },
+        x,
+      ),
     saveTranslation: (
       SHTID: number,
       LNGCOD: string,
       body: Partial<TranslationValues> & { ROWVER: string },
       x?: RequestExtras,
-    ) => call<SheetState>(`sheets/${SHTID}/translations/${LNGCOD}`, "PUT", { ...body }, x),
-    deleteTranslation: (SHTID: number, LNGCOD: string, ROWVER: string, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}/translations/${LNGCOD}`, "DELETE", { ROWVER }, x),
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/translations/${LNGCOD}`,
+        "PUT",
+        { ...body },
+        x,
+      ),
+    deleteTranslation: (
+      SHTID: number,
+      LNGCOD: string,
+      ROWVER: string,
+      x?: RequestExtras,
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/translations/${LNGCOD}`,
+        "DELETE",
+        { ROWVER },
+        x,
+      ),
+    /**
+     * Modification d'une fiche validée (RG-01) : nouvelle version validée.
+     * TRANSLATIONS[lng] : champs modifiés (les autres sont conservés) ; null = suppression.
+     */
+    updateValidatedSheet: (
+      SHTID: number,
+      body: {
+        ROWVER: string;
+        COMMENT?: string;
+        SHEET?: SheetCommon;
+        TRANSLATIONS?: Record<string, Partial<TranslationValues> | null>;
+      },
+      x?: RequestExtras,
+    ) => call<SheetState>(`sheets/${SHTID}/validated`, "PUT", { ...body }, x),
+
+    /* Réservation (RG-04) */
+    lockSheet: (SHTID: number, x?: RequestExtras) =>
+      call<SheetLock>(`sheets/${SHTID}/lock`, "POST", {}, x),
+    unlockSheet: (SHTID: number, x?: RequestExtras) =>
+      call<{ SHTID: number; RELEASED: boolean }>(
+        `sheets/${SHTID}/lock`,
+        "DELETE",
+        {},
+        x,
+      ),
 
     /* Workflow */
-    submitSheet: (SHTID: number, ROWVER: string, COMMENT?: string, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}/submit`, "POST", { ROWVER, COMMENT }, x),
+    submitSheet: (
+      SHTID: number,
+      ROWVER: string,
+      COMMENT?: string,
+      x?: RequestExtras,
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/submit`,
+        "POST",
+        { ROWVER, COMMENT },
+        x,
+      ),
     submitAllSheets: (
-      body: { SEARCH?: string; COLCOD?: string; MILLESIME?: number; COMMENT?: string },
+      body: {
+        SEARCH?: string;
+        COLCOD?: string;
+        MILLESIME?: number;
+        COMMENT?: string;
+      },
       x?: RequestExtras,
     ) => call<BulkSubmitResult>("sheets/submit-all", "POST", { ...body }, x),
-    validateSheet: (SHTID: number, ROWVER: string, COMMENT?: string, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}/validate`, "POST", { ROWVER, COMMENT }, x),
-    rejectSheet: (SHTID: number, ROWVER: string, COMMENT: string, x?: RequestExtras) =>
-      call<SheetState>(`sheets/${SHTID}/reject`, "POST", { ROWVER, COMMENT }, x),
+    validateSheet: (
+      SHTID: number,
+      ROWVER: string,
+      COMMENT?: string,
+      x?: RequestExtras,
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/validate`,
+        "POST",
+        { ROWVER, COMMENT },
+        x,
+      ),
+    rejectSheet: (
+      SHTID: number,
+      ROWVER: string,
+      COMMENT: string,
+      x?: RequestExtras,
+    ) =>
+      call<SheetState>(
+        `sheets/${SHTID}/reject`,
+        "POST",
+        { ROWVER, COMMENT },
+        x,
+      ),
 
     /* Versions & contrôle */
     getVersions: (SHTID: number, x?: RequestExtras) =>
@@ -141,37 +249,82 @@ export function createVinidocApi(token: string | undefined) {
       call<SheetVersion>(`sheets/${SHTID}/versions/${VERNUM}`, "GET", {}, x),
     checkSheet: (
       SHTID: number,
-      body: { LNGCOD: string; TPLID?: number; SOURCE?: "CURRENT" | "VALIDATED" },
+      body: {
+        LNGCOD: string;
+        TPLID?: number;
+        SOURCE?: "CURRENT" | "VALIDATED";
+        /** Article PFI : balises logistiques {{LOG.*}} */
+        COD_ARTICLE?: string;
+      } & LocalSheetChanges,
       x?: RequestExtras,
     ) => call<CheckReport>(`sheets/${SHTID}/check`, "POST", { ...body }, x),
 
     /* Modèles */
-    listTemplates: (filters: { ACTIVE?: boolean; LNGCOD?: string } = {}, x?: RequestExtras) =>
-      call<Template[]>("templates", "GET", { ...filters }, x),
-    getTemplate: (TPLID: number, x?: RequestExtras) => call<Template>(`templates/${TPLID}`, "GET", {}, x),
+    listTemplates: (
+      filters: { ACTIVE?: boolean; LNGCOD?: string } = {},
+      x?: RequestExtras,
+    ) => call<Template[]>("templates", "GET", { ...filters }, x),
+    getTemplate: (TPLID: number, x?: RequestExtras) =>
+      call<Template>(`templates/${TPLID}`, "GET", {}, x),
     createTemplate: (
       body: { TPLNAM: string; DESCR?: string | null; LNGCOD?: string | null },
       file: File,
       x?: RequestExtras,
     ) => call<Template>("templates", "POST", { ...body }, x, { file: [file] }),
     inspectTemplate: (file: File, x?: RequestExtras) =>
-      call<TemplateInspection>("templates/inspect", "POST", {}, x, { file: [file] }),
+      call<TemplateInspection>("templates/inspect", "POST", {}, x, {
+        file: [file],
+      }),
     updateTemplate: (
       TPLID: number,
-      body: { TPLNAM: string; DESCR: string | null; LNGCOD: string | null; ACTIVE: boolean; ROWVER: string },
+      body: {
+        TPLNAM: string;
+        DESCR: string | null;
+        LNGCOD: string | null;
+        ACTIVE: boolean;
+        ROWVER: string;
+      },
       x?: RequestExtras,
     ) => call<Template>(`templates/${TPLID}`, "PUT", { ...body }, x),
     replaceTemplateFile: (TPLID: number, file: File, x?: RequestExtras) =>
       call<Template>(`templates/${TPLID}/file`, "PUT", {}, x, { file: [file] }),
     setTemplateTags: (
       TPLID: number,
-      TAGS: { TAGTYP: TagType; TAGNAM: string; MAXLEN: number | null; REQUIRED: boolean }[],
+      TAGS: {
+        TAGTYP: TagType;
+        TAGNAM: string;
+        MAXLEN: number | null;
+        REQUIRED: boolean;
+      }[],
       x?: RequestExtras,
     ) => call<Template>(`templates/${TPLID}/tags`, "PUT", { TAGS }, x),
     previewTemplate: (TPLID: number, x?: RequestExtras) =>
       call<TemplatePreview>(`templates/${TPLID}/preview`, "GET", {}, x),
     deleteTemplate: (TPLID: number, x?: RequestExtras) =>
-      call<{ TPLID: number; DELETED: boolean }>(`templates/${TPLID}`, "DELETE", {}, x),
+      call<{ TPLID: number; DELETED: boolean }>(
+        `templates/${TPLID}`,
+        "DELETE",
+        {},
+        x,
+      ),
+
+    /* Paramètres */
+    getParams: (x?: RequestExtras) => call<AppParam[]>("params", "GET", {}, x),
+    updateParams: (
+      PARAMS: { PRMKEY: string; PRMVAL: number }[],
+      x?: RequestExtras,
+    ) => call<AppParam[]>("params", "PUT", { PARAMS }, x),
+
+    /* Articles PFI (DWH) */
+    searchArticles: (SEARCH: string, x?: RequestExtras) =>
+      call<ArticleSummary[]>("articles", "GET", { SEARCH }, x),
+    getArticle: (COD_ARTICLE: string, x?: RequestExtras) =>
+      call<Article>(
+        `articles/${encodeURIComponent(COD_ARTICLE)}`,
+        "GET",
+        {},
+        x,
+      ),
 
     /* Génération */
     generate: (
@@ -182,15 +335,36 @@ export function createVinidocApi(token: string | undefined) {
         FORMAT: OutputFormat;
         HVE: boolean;
         BIO: boolean;
-      },
+        PACKAGING: Packaging;
+        COD_ARTICLE?: string;
+        /** Champs libres {{FREE.*}} : balise → texte */
+        FREE?: Record<string, string>;
+        /** Données logistiques corrigées {{LOG.*}} : balise → valeur */
+        LOGISTICS?: Record<string, string>;
+      } & LocalSheetChanges,
       photo?: File | null,
       x?: RequestExtras,
     ) =>
       photo
-        ? call<GenerationResult>("generate", "POST", { ...body }, x, { photo: [photo] })
+        ? // multipart : primitives uniquement, objets en chaîne JSON
+          call<GenerationResult>(
+            "generate",
+            "POST",
+            {
+              ...body,
+              FREE: JSON.stringify(body.FREE ?? {}),
+              LOGISTICS: JSON.stringify(body.LOGISTICS ?? {}),
+              SHEET: body.SHEET && JSON.stringify(body.SHEET),
+              TRANSLATION: body.TRANSLATION && JSON.stringify(body.TRANSLATION),
+            },
+            x,
+            { photo: [photo] },
+          )
         : call<GenerationResult>("generate", "POST", { ...body }, x),
-    listGenerations: (filters: { SHTID?: number; TPLID?: number; LIMIT?: number } = {}, x?: RequestExtras) =>
-      call<Generation[]>("generations", "GET", { ...filters }, x),
+    listGenerations: (
+      filters: { SHTID?: number; TPLID?: number; LIMIT?: number } = {},
+      x?: RequestExtras,
+    ) => call<Generation[]>("generations", "GET", { ...filters }, x),
   };
 }
 

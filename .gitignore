@@ -13,6 +13,9 @@ dist-ssr
 *.local
 package-lock.json
 
+templates
+bottle_img
+
 
 # .env
 .env*

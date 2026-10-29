@@ -93,6 +93,69 @@
   margin-left: $margin-small;
 }
 
+// Option de PFI avec badge (fiche non validée par le marketing)
+.vd-article-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $margin-small;
+  width: 100%;
+
+  .vd-chip {
+    margin: 0;
+    flex-shrink: 0;
+  }
+}
+
+// PFI dont le vrac n'a pas de fiche : option affichée mais non sélectionnable
+// (custom-form-system ne gère pas d'option désactivée).
+.vd-option-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $margin-small;
+  width: 100%;
+  cursor: not-allowed;
+
+  > span:first-child {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+
+  .vd-chip {
+    margin: 0;
+    flex-shrink: 0;
+  }
+}
+
+.custom-select-option:has(.vd-option-disabled) {
+  cursor: not-allowed;
+}
+
+.vd-logistics {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-small;
+
+  > .vd-muted {
+    margin: 0;
+  }
+
+  &__detail {
+    font-size: 0.85em;
+    margin-top: 2px;
+  }
+}
+
+// Fiche ajustée localement pour une génération (bouton + état)
+.vd-local-sheet {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $margin-small;
+  margin-bottom: $margin-medium;
+}
+
 .vd-section-actions {
   display: flex;
   justify-content: flex-end;
@@ -115,12 +178,17 @@
   align-items: center;
   gap: 0.25rem;
   margin: 0 0.25rem 0.15rem 0;
-  padding: 0.05rem 0.45rem;
+  padding: 0.2rem 0.45rem;
   border-radius: $border-radius-small;
   background: $background-color;
   color: $secondary-color;
   font-size: $font-size-xs;
   font-weight: 600;
+
+  &--info {
+    background: with-alpha($info-color, 0.12);
+    color: $info-color;
+  }
 
   &--success {
     background: with-alpha($success-color, 0.12);
@@ -216,12 +284,22 @@
 
 // ─── Alertes ─────────────────────────────────────────────────
 
+// Liste des alertes dans la confirmation de génération
+.vd-confirm-list {
+  margin: 0;
+  padding-left: 1.2em;
+  text-align: left;
+
+  li + li {
+    margin-top: $margin-small;
+  }
+}
+
 .vd-alert {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: $margin-small;
-  margin-bottom: $margin-small;
   padding: 0.6rem $padding-medium;
   border-radius: $border-radius-small;
   border-left: 4px solid $info-color;
@@ -264,10 +342,26 @@
 // impaires sur --color-bg (plus foncé que la section en sombre), paires
 // éclaircies vers la couleur primaire.
 .vd-table {
-  --vd-row: color-mix(in srgb, var(--color-primary, #145c7b) 6%, var(--color-bg, #fff));
-  --vd-row-alt: color-mix(in srgb, var(--color-primary, #145c7b) 18%, var(--color-section-bg, #fff));
-  --vd-row-hover: color-mix(in srgb, var(--color-primary, #145c7b) 30%, var(--color-section-bg, #fff));
-  --vd-row-line: color-mix(in srgb, var(--color-primary, #145c7b) 35%, transparent);
+  --vd-row: color-mix(
+    in srgb,
+    var(--color-primary, #145c7b) 6%,
+    var(--color-bg, #fff)
+  );
+  --vd-row-alt: color-mix(
+    in srgb,
+    var(--color-primary, #145c7b) 18%,
+    var(--color-section-bg, #fff)
+  );
+  --vd-row-hover: color-mix(
+    in srgb,
+    var(--color-primary, #145c7b) 30%,
+    var(--color-section-bg, #fff)
+  );
+  --vd-row-line: color-mix(
+    in srgb,
+    var(--color-primary, #145c7b) 35%,
+    transparent
+  );
 
   width: 100%;
   border-collapse: collapse;
@@ -314,11 +408,19 @@
   }
 
   tbody .vd-row--error td {
-    background: color-mix(in srgb, var(--color-danger, #a5212e) 16%, var(--color-section-bg, #fff));
+    background: color-mix(
+      in srgb,
+      var(--color-danger, #a5212e) 16%,
+      var(--color-section-bg, #fff)
+    );
   }
 
   tbody .vd-row--warning td {
-    background: color-mix(in srgb, var(--color-warning, #b54708) 16%, var(--color-section-bg, #fff));
+    background: color-mix(
+      in srgb,
+      var(--color-warning, #b54708) 16%,
+      var(--color-section-bg, #fff)
+    );
   }
 
   code {
@@ -331,7 +433,11 @@
 :root[data-theme="dark"] .vd-table {
   --vd-row: var(--color-bg-subtle, #101d24);
   --vd-row-alt: var(--color-bg, #182830);
-  --vd-row-hover: color-mix(in srgb, var(--color-primary, #4fa8c7) 18%, var(--color-bg, #182830));
+  --vd-row-hover: color-mix(
+    in srgb,
+    var(--color-primary, #4fa8c7) 18%,
+    var(--color-bg, #182830)
+  );
   --vd-row-line: rgba(255, 255, 255, 0.06);
 
   th {
@@ -341,11 +447,19 @@
   }
 
   tbody .vd-row--error td {
-    background: color-mix(in srgb, var(--color-danger, #e8636f) 18%, var(--color-bg-subtle, #101d24));
+    background: color-mix(
+      in srgb,
+      var(--color-danger, #e8636f) 18%,
+      var(--color-bg-subtle, #101d24)
+    );
   }
 
   tbody .vd-row--warning td {
-    background: color-mix(in srgb, var(--color-warning, #e8b74a) 16%, var(--color-bg-subtle, #101d24));
+    background: color-mix(
+      in srgb,
+      var(--color-warning, #e8b74a) 16%,
+      var(--color-bg-subtle, #101d24)
+    );
   }
 }
 
@@ -862,10 +976,11 @@
     background: $background-color;
   }
 
+  // Un bloc par ligne : lecture dans l'ordre de la fiche, sans zigzag
   &__texts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: $margin-medium;
+    display: flex;
+    flex-direction: column;
+    gap: $margin-small;
   }
 
   .vd-alert {
@@ -968,26 +1083,37 @@
 .vd-sheet-text {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding-left: 0.75rem;
-  border-left: 3px solid $background-color-dark;
+  gap: 0.5rem;
+  padding: 0.75rem $padding-medium;
+  border: 1px solid $background-color-dark;
+  border-radius: $border-radius-small;
+  background: $background-color;
 
   &__head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: center;
     gap: $margin-small;
 
+    > svg {
+      color: $primary-color-light;
+      flex-shrink: 0;
+    }
+
     h5 {
+      flex: 1;
       margin: 0;
       color: $secondary-color;
       font-size: $font-size-small;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
     }
   }
 
   &__count {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: $background-color-dark;
     color: $text-color-muted;
     font-size: $font-size-xs;
     font-variant-numeric: tabular-nums;
@@ -995,16 +1121,29 @@
   }
 
   p {
+    max-width: 80ch;
     margin: 0;
-    font-size: $font-size-small;
-    line-height: 1.5;
+    color: $text-color-dark;
+    font-size: $font-size-medium;
+    line-height: 1.65;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+
+    &.vd-muted {
+      font-size: $font-size-small;
+      font-style: italic;
+    }
   }
 
   &--ko {
-    border-left-color: $danger-color;
+    border-color: with-alpha($danger-color, 0.5);
+
+    .vd-sheet-text__head > svg {
+      color: $danger-color;
+    }
 
     .vd-sheet-text__count {
+      background: with-alpha($danger-color, 0.15);
       color: $danger-color;
       font-weight: 700;
     }
@@ -1278,11 +1417,32 @@
     font-weight: 600;
   }
 
+  // Champs libres {{FREE.*}} : deux colonnes, repliées si étroit
+  .vd-free-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: $margin-medium;
+  }
+
   &__options {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    gap: $margin-small;
+    display: grid;
+    // Format / Logos / Conditionnement côte à côte, repliés en colonne si étroit
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: $margin-medium;
+
+    // Une carte par option (même hauteur sur une ligne)
+    > div {
+      padding: 0.75rem $padding-medium;
+      border: 1px solid $background-color-dark;
+      border-radius: $border-radius;
+      background: $card-bg;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      transition: border-color 0.15s;
+
+      &:focus-within {
+        border-color: $primary-color-light;
+      }
+    }
   }
 
   &__choices {
@@ -1293,6 +1453,7 @@
 
   &__hint {
     margin: 0;
+    margin-top: $margin-small;
     font-size: $font-size-xs;
   }
 }
@@ -1397,6 +1558,25 @@
     overflow-wrap: anywhere;
   }
 
+  // Valeur cliquable (ex. « Textes non conformes — voir le détail »)
+  button.vd-summary__step-value,
+  button.vd-summary__reason-text {
+    display: inline-flex;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $danger-color;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+
   &__output {
     display: grid;
     grid-template-columns: 1fr;
@@ -1430,6 +1610,15 @@
     margin: -0.5rem 0 0;
     color: $text-color-muted;
     font-size: $font-size-xs;
+    text-align: center;
+  }
+
+  // Compte à rebours avant génération, avec bouton d'annulation
+  &__countdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-weight: 600;
     text-align: center;
   }
 }
@@ -1585,6 +1774,115 @@
   }
 }
 
+// Balise copiable affichée en pastille (catalogue des balises)
+.vd-tag-chip {
+  padding: 2px 6px;
+  border-radius: $border-radius;
+  background: with-alpha($primary-color, 0.06);
+  white-space: nowrap;
+
+  &:hover {
+    background: with-alpha($primary-color, 0.14);
+  }
+}
+
+// Catalogue des balises de fusion (page Modèles)
+.vd-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-medium;
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: $margin-small;
+  }
+
+  .vd-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  &__hint {
+    margin: 0;
+  }
+
+  &__howto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: $margin-small;
+  }
+
+  &__howto-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: $padding-small;
+    border: 1px solid with-alpha($secondary-color, 0.15);
+    border-radius: $border-radius;
+    font-size: $font-size-small;
+
+    p {
+      margin: 0;
+      flex: 1;
+      color: $text-color-muted;
+    }
+  }
+
+  &__table td:first-child {
+    width: 1%;
+  }
+
+  &__flag {
+    margin-left: $margin-small;
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: $font-size-small;
+
+    li {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: $margin-small;
+    }
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  &__badges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: $margin-small;
+  }
+
+  &__badge-group {
+    display: flex;
+    flex-direction: column;
+    gap: $margin-small;
+    padding: $padding-small;
+    border: 1px solid with-alpha($secondary-color, 0.15);
+    border-radius: $border-radius;
+    font-size: $font-size-small;
+  }
+
+  &__badge {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
 .vd-modal-message {
   margin-bottom: $margin-small;
   font-size: $font-size-small;
@@ -1625,4 +1923,30 @@
 
 .vd-settings__default {
   margin-top: $margin-medium;
+}
+
+// Section « Contrôle et aperçu » : cible du lien du récapitulatif — décalée
+// sous l'en-tête fixe, brièvement mise en évidence à l'arrivée.
+#vd-generation-check {
+  scroll-margin-top: 5rem;
+}
+
+.vd-flash {
+  animation: vd-flash 1.6s ease-out;
+}
+
+@keyframes vd-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 3px var(--color-border-focus, #{$primary-color});
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vd-flash {
+    animation: none;
+  }
 }

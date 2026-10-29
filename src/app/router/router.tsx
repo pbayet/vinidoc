@@ -18,6 +18,9 @@ import NotFoundPage from "../../pages/NotFoundPage";
  *   - fiches œnologiques : lecture pour tous, saisie si EDIT (œnologie)
  *   - À valider          : VALIDATE (marketing)
  *   - modèles            : TEMPLATES
+ * ⚠️ TEMPORAIRE : en production, un utilisateur de statut USER n'accède
+ * qu'aux balises de fusion de /modeles et à l'apparence de /parametres
+ * (cf. useMergeFieldsOnly).
  */
 const RouterConfig: React.FC = () => {
   return (
@@ -51,7 +54,11 @@ const RouterConfig: React.FC = () => {
       <Route
         path="/modeles"
         element={
-          <PrivateRoute component={ModelesPage} requireRight="TEMPLATES" />
+          <PrivateRoute
+            component={ModelesPage}
+            requireRight="TEMPLATES"
+            allowMergeFieldsOnly
+          />
         }
       >
         {/* Routes enfants sans élément : la liste reste montée sous la modale */}
@@ -62,7 +69,9 @@ const RouterConfig: React.FC = () => {
       {/* Paramètres de l'utilisateur (thème) */}
       <Route
         path="/parametres"
-        element={<PrivateRoute component={ParametresPage} />}
+        element={
+          <PrivateRoute component={ParametresPage} allowMergeFieldsOnly />
+        }
       />
 
       {/* Ancienne URL éventuelle */}

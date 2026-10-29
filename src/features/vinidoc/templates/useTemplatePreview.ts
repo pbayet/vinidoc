@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useFileViewer } from "@uvcdr/custom-form-system";
+import { isApiError } from "@uvcdr/api-auth-system";
+import { useNotification } from "@uvcdr/confirm-notify-system";
 import { useVinidocApi } from "../api/useVinidocApi";
 
 /**
@@ -13,12 +15,18 @@ import { useVinidocApi } from "../api/useVinidocApi";
 export function useTemplatePreview() {
   const api = useVinidocApi();
   const viewer = useFileViewer();
+  const { notifyError } = useNotification();
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
   const open = async (TPLID: number) => {
     setLoadingId(TPLID);
     try {
       const preview = await api.previewTemplate(TPLID);
+      if (!preview?.URL) {
+        throw new Error(
+          `Réponse d'aperçu sans URL : ${JSON.stringify(preview)}`,
+        );
+      }
       viewer.open(
         [
           {
@@ -29,8 +37,16 @@ export function useTemplatePreview() {
         ],
         0,
       );
-    } catch {
-      /* toast déjà affiché (fichier absent, conversion PDF...) */
+    } catch (err) {
+      // Erreur d'API : toast déjà affiché (fichier absent, conversion PDF...).
+      // Toute autre erreur (réponse inattendue...) est signalée ici.
+      if (!isApiError(err)) {
+        console.error("[VINIDOC] Aperçu du modèle", TPLID, err);
+        notifyError(
+          "Impossible d'ouvrir l'aperçu du modèle.",
+          err instanceof Error ? err.message : String(err),
+        );
+      }
     } finally {
       setLoadingId(null);
     }

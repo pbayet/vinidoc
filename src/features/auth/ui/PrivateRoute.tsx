@@ -7,6 +7,10 @@ import { useAuth } from "@uvcdr/api-auth-system";
 import { CustomButton, Icon } from "@uvcdr/custom-form-system";
 import { useVinidoc } from "../../vinidoc/context/VinidocContext";
 import type { Rights } from "../../../entities/vinidoc/vinidoc.types";
+import {
+  MERGE_FIELDS_ONLY_PATH,
+  useMergeFieldsOnly,
+} from "../hooks/useMergeFieldsOnly";
 
 interface PrivateRouteProps<T extends object> {
   component: React.ComponentType<T>;
@@ -25,6 +29,12 @@ interface PrivateRouteProps<T extends object> {
    * (modèles PowerPoint). Même signal que l'affichage des liens dans Nav.tsx.
    */
   requireRight?: keyof Rights;
+  /**
+   * ⚠️ TEMPORAIRE — route ouverte en accès restreint (cf. useMergeFieldsOnly) :
+   * les autres routes redirigent vers MERGE_FIELDS_ONLY_PATH, et `requireRight`
+   * n'est pas exigé ici (la page n'affiche que ses sections autorisées).
+   */
+  allowMergeFieldsOnly?: boolean;
 }
 
 const PrivateRoute = <T extends object>({
@@ -32,9 +42,11 @@ const PrivateRoute = <T extends object>({
   componentProps,
   requireModify = false,
   requireRight,
+  allowMergeFieldsOnly = false,
 }: PrivateRouteProps<T>): JSX.Element | null => {
   const { isAuthenticated, loading, jwtPayload } = useAuth();
   const vinidoc = useVinidoc();
+  const mergeFieldsOnly = useMergeFieldsOnly();
 
   // 🔁 Redirection hard en production (changement d'URL)
   useEffect(() => {
@@ -56,6 +68,11 @@ const PrivateRoute = <T extends object>({
 
     // En production, la redirection est gérée par l'effect ci-dessus
     return null;
+  }
+
+  // ⚠️ TEMPORAIRE — accès restreint : balises de fusion et paramètres seuls
+  if (mergeFieldsOnly && !allowMergeFieldsOnly) {
+    return <Navigate to={MERGE_FIELDS_ONLY_PATH} replace />;
   }
 
   // 🚫 Authentifié mais sans droit de modification : route réservée
@@ -88,7 +105,7 @@ const PrivateRoute = <T extends object>({
   }
 
   // 🚫 Droit VINIDOC requis absent : retour à l'accueil
-  if (requireRight && !vinidoc.rights[requireRight]) {
+  if (requireRight && !mergeFieldsOnly && !vinidoc.rights[requireRight]) {
     return <Navigate to="/" replace />;
   }
 

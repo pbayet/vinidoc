@@ -24,6 +24,13 @@ export const STATUS_ICONS: Record<SheetStatus, string> = {
   REJECTED: "circle-xmark",
 };
 
+export const STATUS_COLORS: Record<SheetStatus, string> = {
+  DRAFT: "info",
+  SUBMITTED: "warning",
+  VALIDATED: "success",
+  REJECTED: "danger",
+};
+
 export const EVENT_LABELS: Record<SheetEvent["EVTTYP"], string> = {
   CREATED: "Création",
   UPDATED: "Modification des caractéristiques",
@@ -31,6 +38,7 @@ export const EVENT_LABELS: Record<SheetEvent["EVTTYP"], string> = {
   TRANSLATION_DELETED: "Traduction supprimée",
   SUBMITTED: "Soumise à validation",
   VALIDATED: "Validée",
+  VALIDATED_UPDATED: "Fiche validée modifiée (nouvelle version)",
   REJECTED: "Refusée",
   DELETED: "Supprimée",
 };

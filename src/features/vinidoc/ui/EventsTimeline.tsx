@@ -10,6 +10,7 @@ const EVENT_ICONS: Record<SheetEvent["EVTTYP"], string> = {
   TRANSLATION_DELETED: "eraser",
   SUBMITTED: "paper-plane",
   VALIDATED: "circle-check",
+  VALIDATED_UPDATED: "code-branch",
   REJECTED: "circle-xmark",
   DELETED: "trash",
 };

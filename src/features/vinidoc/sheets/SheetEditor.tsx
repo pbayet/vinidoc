@@ -27,6 +27,7 @@ import CommonFieldsCard from "./CommonFieldsCard";
 import TextsCard from "./TextsCard";
 import TemplatesCard from "./TemplatesCard";
 import VersionModal from "./VersionModal";
+import { useSheetLock } from "./useSheetLock";
 import { formToCommon, type CommonFormValues } from "./commonForm";
 import { formatDateTime, sheetTitle } from "../lib/format";
 import {
@@ -40,9 +41,16 @@ import {
 import type {
   Sheet,
   SheetCommon,
+  TranslationValues,
 } from "../../../entities/vinidoc/vinidoc.types";
 
 type WorkflowAction = "submit" | "validate" | "reject" | "delete" | null;
+
+/** Modifications d'une fiche validée, enregistrées en une nouvelle version. */
+interface ValidatedChanges {
+  SHEET?: SheetCommon;
+  TRANSLATIONS: Record<string, Partial<TranslationValues> | null>;
+}
 
 interface SheetEditorProps {
   SHTID: number;
@@ -57,9 +65,19 @@ interface SheetEditorProps {
  * Affichée en modale au-dessus de la liste, ouverte par la route
  * `/oenologie/:shtid` (ou `/validation/:shtid`) — cf. SheetsList.
  *
- * Verrouillage optimiste : chaque écriture envoie le ROWVER de la fiche
- * telle qu'affichée ; si quelqu'un l'a modifiée entre-temps, l'API répond
- * 409 et l'utilisateur recharge. Après chaque écriture, la fiche est
+ * Réservation (RG-04) : la fiche s'ouvre en lecture ; « Modifier » la
+ * réserve avant toute saisie (cf. useSheetLock). Si un autre utilisateur
+ * la modifie déjà, son nom et l'heure sont affichés et la fiche reste en
+ * lecture seule. La réservation est libérée à l'enregistrement, à
+ * l'abandon de la modification ou à la fermeture de la fiche.
+ *
+ * Fiche validée (RG-01) : elle ne repasse pas en brouillon. Tout
+ * enregistrement (caractéristiques et/ou textes de plusieurs langues) crée
+ * une seule nouvelle version validée, avec un commentaire facultatif.
+ *
+ * Verrouillage optimiste en complément : chaque écriture envoie le ROWVER
+ * de la fiche telle qu'affichée ; si elle a changé entre-temps, l'API
+ * répond 409 et l'utilisateur recharge. Après chaque écriture, la fiche est
  * relue ; seuls les brouillons de la partie enregistrée sont réinitialisés
  * (une traduction en cours dans un autre onglet n'est pas perdue).
  */
@@ -78,7 +96,10 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
   const [action, setAction] = useState<WorkflowAction>(null);
   const [versionToShow, setVersionToShow] = useState<number | null>(null);
   const [remoteChange, setRemoteChange] = useState(false);
+  const [validatedChanges, setValidatedChanges] =
+    useState<ValidatedChanges | null>(null);
   const commonFormRef = useRef<CustomFormHandle<CommonFormValues>>(null);
+  const sheetLock = useSheetLock(SHTID, sheet?.LOCK);
 
   /* ───────────────────────── Chargement ───────────────────────── */
 
@@ -150,10 +171,18 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
   const hasUnsaved = commonDirty || dirtyLngs.length > 0;
 
   const status = sheet?.STATUS;
+  const isValidated = status === "VALIDATED";
   // Relecture marketing : le valideur corrige lui-même une fiche soumise ;
   // l'API la laisse en SUBMITTED (pas de resoumission), il valide ensuite.
   const isReviewing = rights.VALIDATE && status === "SUBMITTED";
-  const canEdit = !!sheet && (rights.EDIT || isReviewing);
+  // Droit de modifier la fiche dans son statut ; une fiche validée peut être
+  // modifiée par l'œnologie comme par le marketing (nouvelle version).
+  const canModify =
+    !!sheet &&
+    (isValidated ? rights.EDIT || rights.VALIDATE : rights.EDIT || isReviewing);
+  // Saisie ouverte : fiche réservée par l'utilisateur (« Modifier »).
+  const canEdit = canModify && sheetLock.mine;
+  const lockedByOther = sheetLock.heldByOther;
   const lastReject = sheet?.EVENTS.find((e) => e.EVTTYP === "REJECTED");
 
   // Garde-fou : quitter l'onglet avec des modifications non enregistrées.
@@ -166,9 +195,87 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
 
   /* ───────────────────────── Enregistrements ───────────────────────── */
 
+  /* ───────────────────────── Modification ───────────────────────── */
+
+  // Réserve la fiche puis la relit, pour saisir sur la dernière version.
+  const startEdit = async () => {
+    if (await sheetLock.acquire()) await load({ lngs: "all" });
+  };
+
+  // Abandon : brouillons perdus (après confirmation), réservation libérée.
+  const stopEdit = async () => {
+    if (hasUnsaved) {
+      const ok = await confirm({
+        title: "Abandonner les modifications ?",
+        description: "Les modifications non enregistrées seront perdues.",
+        type: "discardcancel",
+      });
+      if (!ok) return;
+    }
+    commonFormRef.current?.resetForm();
+    setTexts(originalTexts);
+    await sheetLock.release();
+  };
+
+  /**
+   * Fiche validée : toutes les modifications en cours (caractéristiques,
+   * langues modifiées, langue `deleteLng` supprimée) sont enregistrées
+   * ensemble dans une nouvelle version, après saisie d'un commentaire.
+   */
+  const openValidatedSave = async (
+    deleteLng?: string,
+    common?: SheetCommon,
+  ) => {
+    const form = commonFormRef.current;
+    let SHEET = common;
+    if (!SHEET && commonDirty && form) {
+      const errors = await form.validateForm();
+      if (Object.values(errors).some(Boolean)) {
+        await form.submitForm(); // affiche les erreurs
+        return;
+      }
+      SHEET = formToCommon(form.getValues());
+    }
+    const TRANSLATIONS: ValidatedChanges["TRANSLATIONS"] = Object.fromEntries(
+      dirtyLngs.map((l) => [l, texts[l]]),
+    );
+    if (deleteLng) TRANSLATIONS[deleteLng] = null;
+    if (!SHEET && !Object.keys(TRANSLATIONS).length) return;
+    setValidatedChanges({ SHEET, TRANSLATIONS });
+  };
+
+  const saveValidated = async (comment: string) => {
+    if (!sheet || !validatedChanges) return;
+    const deleted = Object.keys(validatedChanges.TRANSLATIONS).filter(
+      (l) => validatedChanges.TRANSLATIONS[l] === null,
+    );
+    try {
+      await api.updateValidatedSheet(
+        sheet.SHTID,
+        {
+          ROWVER: sheet.ROWVER,
+          COMMENT: comment || undefined,
+          ...validatedChanges,
+        },
+        {
+          setLoading: setSaving,
+          successMessage: "Nouvelle version validée enregistrée.",
+        },
+      );
+      setValidatedChanges(null);
+      // Réservation libérée par l'API à l'enregistrement.
+      await sheetLock.release();
+      await load({ lngs: "all" });
+      if (deleted.includes(activeLng)) setActiveLng(defaultLng);
+    } catch {
+      setValidatedChanges(null);
+    }
+  };
+
   // Validation faite par le formulaire de la carte (CustomForm).
   const saveCommon = async (common: SheetCommon) => {
     if (!sheet) return;
+    if (isValidated) return openValidatedSave(undefined, common);
     try {
       await api.updateSheet(
         sheet.SHTID,
@@ -186,6 +293,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
 
   const saveText = async (lng: string) => {
     if (!sheet) return;
+    if (isValidated) return openValidatedSave();
     try {
       await api.saveTranslation(
         sheet.SHTID,
@@ -204,6 +312,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
 
   const deleteText = async (lng: string) => {
     if (!sheet) return;
+    if (isValidated) return openValidatedSave(lng);
     try {
       await api.deleteTranslation(sheet.SHTID, lng, sheet.ROWVER, {
         setLoading: setSaving,
@@ -220,6 +329,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
   // en chaînant le ROWVER renvoyé par chaque écriture.
   const saveAll = async () => {
     if (!sheet) return;
+    if (isValidated) return openValidatedSave();
     const form = commonFormRef.current;
     if (commonDirty && form) {
       const errors = await form.validateForm();
@@ -257,15 +367,19 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
     }
 
     setSaving(true);
+    let complete = false;
     try {
       let rowver = sheet.ROWVER;
       for (const [i, write] of writes.entries())
         rowver = await write(rowver, i === writes.length - 1);
+      complete = true;
     } catch {
       /* toast déjà affiché ; on recharge ce qui a pu être enregistré */
     } finally {
       setSaving(false);
     }
+    // Tout est enregistré : fin de la modification (RG-04).
+    if (complete) await sheetLock.release();
     await load({ lngs: savedTextLngs });
   };
 
@@ -302,6 +416,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
       }
       setAction(null);
       void reloadPendingCount();
+      await sheetLock.release();
       await load({});
     } catch {
       setAction(null);
@@ -346,6 +461,9 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
     rights.EDIT && !!sheet && (status === "DRAFT" || status === "REJECTED");
   const canValidate = isReviewing;
   const saveFirstTitle = "Enregistrez ou annulez d'abord vos modifications";
+  const lockedTitle = sheetLock.lock
+    ? `En cours de modification par ${sheetLock.lock.USRNAME}`
+    : undefined;
 
   const actions = (
     <>
@@ -365,6 +483,8 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
           size="xs"
           variant="danger-outline"
           leftIcon={<Icon iconName="trash" />}
+          disabled={lockedByOther || saving}
+          title={lockedByOther ? lockedTitle : undefined}
           onClick={() => setAction("delete")}
         >
           Supprimer
@@ -376,11 +496,13 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
           size="xs"
           variant="warning"
           leftIcon={<Icon iconName="paper-plane" />}
-          disabled={hasUnsaved || saving}
+          disabled={hasUnsaved || saving || lockedByOther}
           title={
-            hasUnsaved
-              ? "Enregistrez d'abord vos modifications"
-              : "Envoyer au marketing pour validation"
+            lockedByOther
+              ? lockedTitle
+              : hasUnsaved
+                ? "Enregistrez d'abord vos modifications"
+                : "Envoyer au marketing pour validation"
           }
           onClick={() => setAction("submit")}
         >
@@ -388,19 +510,54 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
         </CustomButton>
       )}
 
-      {canEdit && (
+      {canModify && !canEdit && (
         <CustomButton
           size="xs"
           variant="primary"
-          leftIcon={<Icon iconName="floppy-disk" />}
-          disabled={!hasUnsaved || saving}
-          title="Enregistrer les caractéristiques et les textes modifiés (toutes langues)"
-          shortcut="Alt+S"
-          bindShortcut
-          onClick={() => void saveAll()}
+          leftIcon={<Icon iconName="pen" />}
+          loading={sheetLock.acquiring}
+          title={
+            lockedByOther
+              ? `${lockedTitle} : réessayer`
+              : isValidated
+                ? "Modifier la fiche validée : l'enregistrement créera une nouvelle version validée"
+                : "Réserver la fiche pour la modifier"
+          }
+          onClick={() => void startEdit()}
         >
-          Enregistrer
+          Modifier
         </CustomButton>
+      )}
+
+      {canEdit && (
+        <>
+          <CustomButton
+            size="xs"
+            variant="neutral"
+            leftIcon={<Icon iconName={hasUnsaved ? "xmark" : "check"} />}
+            disabled={saving}
+            title="Quitter la modification et libérer la fiche"
+            onClick={() => void stopEdit()}
+          >
+            {hasUnsaved ? "Abandonner" : "Terminer"}
+          </CustomButton>
+          <CustomButton
+            size="xs"
+            variant="primary"
+            leftIcon={<Icon iconName="floppy-disk" />}
+            disabled={!hasUnsaved || saving}
+            title={
+              isValidated
+                ? "Enregistrer les modifications dans une nouvelle version validée"
+                : "Enregistrer les caractéristiques et les textes modifiés (toutes langues)"
+            }
+            shortcut="Alt+S"
+            bindShortcut
+            onClick={() => void saveAll()}
+          >
+            Enregistrer
+          </CustomButton>
+        </>
       )}
 
       {canValidate && (
@@ -409,8 +566,14 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
             size="xs"
             variant="danger"
             leftIcon={<Icon iconName="circle-xmark" />}
-            disabled={saving || hasUnsaved}
-            title={hasUnsaved ? saveFirstTitle : undefined}
+            disabled={saving || hasUnsaved || lockedByOther}
+            title={
+              lockedByOther
+                ? lockedTitle
+                : hasUnsaved
+                  ? saveFirstTitle
+                  : undefined
+            }
             onClick={() => setAction("reject")}
           >
             Refuser
@@ -419,11 +582,13 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
             size="xs"
             variant="success"
             leftIcon={<Icon iconName="circle-check" />}
-            disabled={saving || hasUnsaved}
+            disabled={saving || hasUnsaved || lockedByOther}
             title={
-              hasUnsaved
-                ? saveFirstTitle
-                : "Figer le contenu enregistré dans une nouvelle version"
+              lockedByOther
+                ? lockedTitle
+                : hasUnsaved
+                  ? saveFirstTitle
+                  : "Figer le contenu enregistré dans une nouvelle version"
             }
             onClick={() => setAction("validate")}
           >
@@ -458,6 +623,43 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
             </div>
           )}
 
+          {lockedByOther && sheetLock.lock && (
+            <div className="vd-alert vd-alert--warning" role="alert">
+              <Icon iconName="user-lock" />
+              <span>
+                {sheetLock.lost ? (
+                  <>
+                    <strong>Votre réservation a expiré</strong> après une
+                    période d'inactivité :{" "}
+                    <strong>{sheetLock.lock.USRNAME}</strong> modifie la fiche
+                    depuis le {formatDateTime(sheetLock.lock.LOCKDAT)}. Vos
+                    modifications non enregistrées ne peuvent plus être
+                    enregistrées.
+                  </>
+                ) : (
+                  <>
+                    <strong>{sheetLock.lock.USRNAME}</strong> modifie cette
+                    fiche depuis le {formatDateTime(sheetLock.lock.LOCKDAT)} :
+                    elle reste en lecture seule jusqu'à son enregistrement ou sa
+                    fermeture.
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+          {canEdit && isValidated && (
+            <div className="vd-alert vd-alert--info" role="status">
+              <Icon iconName="code-branch" />
+              <span>
+                <strong>Modification d'une fiche validée.</strong> La fiche
+                reste validée : l'enregistrement crée la version n°
+                {(sheet?.LASTVER ?? 0) + 1}, utilisée aussitôt pour générer les
+                fiches techniques. Jusque-là, la version n°{sheet?.LASTVER}{" "}
+                reste utilisée.
+              </span>
+            </div>
+          )}
+
           {remoteChange && (
             <div className="vd-alert vd-alert--warning">
               <Icon iconName="rotate" /> Cette fiche vient d'être modifiée par
@@ -484,7 +686,7 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
           {status === "SUBMITTED" && rights.VALIDATE && (
             <div className="vd-alert vd-alert--info">
               <Icon iconName="clipboard-check" /> Relisez les caractéristiques
-              et les textes dans chaque langue. Vous pouvez les corriger
+              et les textes dans chaque langue. Vous pouvez les corriger (bouton « Modifier »)
               directement : vos modifications sont enregistrées sans renvoyer la
               fiche à l'œnologie. Validez ensuite (ou refusez) la fiche — la
               validation porte sur la fiche entière, toutes langues confondues.
@@ -552,9 +754,11 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
                 />
 
                 <CustomFormSection
-                  title="Versions validées"
+                  title={`Versions validées (${sheet.VERSIONS.length})`}
                   icon={<Icon iconName="code-branch" />}
                   description="Contenus figés à chaque validation marketing ; la plus récente sert à la génération."
+                  retractable
+                  defaultRetracted={true}
                 >
                   {sheet.VERSIONS.length === 0 ? (
                     <p className="vd-muted">
@@ -584,13 +788,17 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
                   )}
                 </CustomFormSection>
 
-                <CustomFormSection
-                  title="Historique"
-                  icon={<Icon iconName="clock-rotate-left" />}
-                  className="section-grid--full"
-                >
-                  <EventsTimeline events={sheet.EVENTS} />
-                </CustomFormSection>
+                {sheet.EVENTS.length > 0 && (
+                  <CustomFormSection
+                    title={`Historique (${sheet.EVENTS.length})`}
+                    icon={<Icon iconName="clock-rotate-left" />}
+                    className="section-grid--half"
+                    retractable
+                    defaultRetracted={true}
+                  >
+                    <EventsTimeline events={sheet.EVENTS} />
+                  </CustomFormSection>
+                )}
               </>
             )}
           </div>
@@ -603,6 +811,17 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
             />
           )}
 
+          <CommentModal
+            isOpen={!!validatedChanges}
+            title="Enregistrer une nouvelle version validée"
+            message={`Les modifications seront enregistrées dans la version n°${(sheet?.LASTVER ?? 0) + 1} de la fiche, qui reste validée et sera utilisée pour générer les fiches techniques. Le commentaire est conservé dans l'historique.`}
+            label="Commentaire (motif de la modification, optionnel)"
+            confirmLabel="Enregistrer la version"
+            confirmIcon="floppy-disk"
+            loading={saving}
+            onConfirm={saveValidated}
+            onClose={() => setValidatedChanges(null)}
+          />
           <CommentModal
             isOpen={action === "submit"}
             title="Soumettre au marketing"

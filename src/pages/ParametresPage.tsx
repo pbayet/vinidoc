@@ -5,17 +5,23 @@ import ThemePicker from "../shared/ui/ThemePicker/ThemePicker";
 import DefaultThemeModal from "../shared/ui/DefaultThemeModal/DefaultThemeModal";
 import { THEME_LABELS } from "../shared/lib/theme/theme";
 import { useUserTheme } from "../shared/lib/theme/userTheme";
+import AppParamsCard from "../features/vinidoc/params/AppParamsCard";
+import { useMergeFieldsOnly } from "../features/auth/hooks/useMergeFieldsOnly";
 
 /**
  * Paramètres de l'utilisateur. Apparence : thème de VINIDOC pour son compte,
  * enregistré en base (usersmanager/theme, APPCOD VINDOC) et appliqué
  * immédiatement ; « Par défaut » reprend son thème par défaut (commun à
  * toutes ses applications), modifiable ici dans une modale.
+ * Paramètres de l'application : calculs logistiques et réservation des
+ * fiches (cf. AppParamsCard).
  */
 const ParametresPage: React.FC = () => {
   const { theme, isLoading, isSaving, loadError, setApplicationTheme } =
     useUserTheme();
   const [isDefaultThemeOpen, setDefaultThemeOpen] = useState(false);
+  // ⚠️ TEMPORAIRE — accès restreint : section « Apparence » seule
+  const mergeFieldsOnly = useMergeFieldsOnly();
 
   return (
     <PageLayout title="Paramètres">
@@ -47,6 +53,8 @@ const ParametresPage: React.FC = () => {
           </CustomButton>
         </div>
       </CustomFormSection>
+
+      {!mergeFieldsOnly && <AppParamsCard />}
 
       <DefaultThemeModal
         isOpen={isDefaultThemeOpen}
