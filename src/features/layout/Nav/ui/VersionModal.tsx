@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   VersionClass,
   VersionDetailClass,
@@ -8,7 +8,13 @@ import { formatDate } from "../../../../shared/lib/utils/date.functions";
 import { APP_NAME } from "../../../../app/config";
 import "../styles/VersionModal.scss";
 import { Modal } from "@uvcdr/modal";
-import { Icon } from "@uvcdr/custom-form-system";
+import {
+  Icon,
+  CustomButton,
+  CustomSelect,
+  type SelectOption,
+} from "@uvcdr/custom-form-system";
+import { useAppVersionsHistory } from "../../hooks/useAppVersionsHistory";
 
 interface VersionModalProps {
   isOpen: boolean;
@@ -35,9 +41,38 @@ const CHANGE_TYPE_ICON: Record<ChangeType, string> = {
 
 const VersionModal: React.FC<VersionModalProps> = ({
   isOpen,
-  version,
+  version: latestVersion,
   onClose,
 }) => {
+  // Historique complet (plus récente d'abord) pour consulter les nouveautés
+  // des versions précédentes ; la dernière version (prop) reste affichée
+  // tant que la liste n'est pas chargée.
+  const versions = useAppVersionsHistory();
+  const [selectedVID, setSelectedVID] = useState<number>(latestVersion.VID);
+
+  const history = useMemo(
+    () => (versions.length > 0 ? versions : [latestVersion]),
+    [versions, latestVersion],
+  );
+  const selectedIndex = Math.max(
+    0,
+    history.findIndex((v) => v.VID === selectedVID),
+  );
+  const version = history[selectedIndex] ?? latestVersion;
+  const isLatest = version.VID === history[0]?.VID;
+
+  const versionOptions = useMemo<SelectOption[]>(
+    () =>
+      history.map((v, i) => ({
+        type: "option",
+        value: String(v.VID),
+        label: `V${v.VNUM} — ${formatDate(v.RELEASEDTE || "", "date") ?? ""}${
+          i === 0 ? " (actuelle)" : ""
+        }`,
+        keywords: [v.VNUM],
+      })),
+    [history],
+  );
   const versionStrDate = useMemo(
     () => formatDate(version.RELEASEDTE || "", "str-date"),
     [version.RELEASEDTE],
@@ -70,7 +105,49 @@ const VersionModal: React.FC<VersionModalProps> = ({
       onClose={onClose}
       size="lg"
       lockBodyScroll={false}
+      className={history.length > 1 ? "version-modal--fixed" : undefined}
     >
+      {history.length > 1 && (
+        <div className="version-picker">
+          <CustomButton
+            variant="ghost"
+            size="xs"
+            leftIcon={<Icon iconName="chevron-left" />}
+            onClick={() => setSelectedVID(history[selectedIndex + 1].VID)}
+            disabled={selectedIndex >= history.length - 1}
+            aria-label="Version précédente"
+            title="Version précédente"
+          />
+          <CustomSelect
+            options={versionOptions}
+            value={String(version.VID)}
+            onChange={(value) => value && setSelectedVID(Number(value))}
+            clearable={false}
+            inputSize="xs"
+            borderRadius="xs"
+            className="version-picker__select"
+          />
+          <CustomButton
+            variant="ghost"
+            size="xs"
+            leftIcon={<Icon iconName="chevron-right" />}
+            onClick={() => setSelectedVID(history[selectedIndex - 1].VID)}
+            disabled={selectedIndex === 0}
+            aria-label="Version suivante"
+            title="Version suivante"
+          />
+          {!isLatest && (
+            <CustomButton
+              variant="info-ghost"
+              size="xs"
+              onClick={() => setSelectedVID(history[0].VID)}
+            >
+              Revenir à la version actuelle
+            </CustomButton>
+          )}
+        </div>
+      )}
+
       <div className="version-meta">
         <div className="version-meta__item">
           <Icon iconName="user" className="version-meta__icon" />

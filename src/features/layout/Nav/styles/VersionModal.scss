@@ -241,3 +241,24 @@ $change-colors: (
     line-height: 1.5;
   }
 }
+
+// ─── Sélecteur de version ──────────────────────────────────────────────────────
+
+// Plusieurs versions : hauteur fixe, pour que la modale ne se recentre pas
+// (et que les flèches ne bougent pas sous la souris) d'une version à l'autre.
+.custom-modal.version-modal--fixed {
+  height: 90vh;
+}
+
+.version-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $margin-small;
+  margin: 0 0 $margin-medium;
+
+  &__select {
+    flex: 0 1 280px;
+    min-width: 200px;
+  }
+}
