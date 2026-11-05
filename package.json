@@ -6,6 +6,7 @@
   "scripts": {
     "archive": "node ../scripts/archive-version.mjs",
     "release": "node ../scripts/bump-version.mjs",
+    "new-project": "node ../scripts/new-project.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:test": "tsc -b && vite build --mode test",
