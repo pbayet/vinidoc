@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "type": "module",
   "scripts": {
+    "archive": "node ../scripts/archive-version.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:test": "tsc -b && vite build --mode test",
