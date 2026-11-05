@@ -18,36 +18,39 @@
    utiliser with-alpha($x, a) et shade($x, %) à la place.
    ============================== */
 
+// Palette claire construite autour du bleu du logo (#145c7b) : fond teinté
+// bleu-gris pour détacher les cartes, textes et bordures dérivés de la même
+// teinte et assez foncés pour viser le contraste WCAG AA (≥ 4.5:1).
 $theme-light: (
   /* Couleurs principales */ "primary-color": #145c7b,
-  "primary-color-light": #4c8c9c,
-  "primary-color-dark": #2c748c,
-  "secondary-color": #3e6b83,
-  "secondary-color-light": #80aac4,
-  "secondary-color-dark": #698b9f,
+  "primary-color-light": #2a7596,
+  "primary-color-dark": #0e4660,
+  "secondary-color": #2f5a72,
+  "secondary-color-light": #7fa3b8,
+  "secondary-color-dark": #4f7387,
 
-  /* Backgrounds */ "background-color": #eaf1f5,
-  "background-color-dark": #c4d1d7,
-  "background-color-translucid": #eaf1f58c,
-  "background-color-dark-translucid": #c4d1d78c,
-  "card-bg": #ffffff,
-  "card-bg-dark": #dfdfdf,
+  /* Backgrounds */ "background-color": #d4e1e9,
+  "background-color-dark": #a9bfcc,
+  "background-color-translucid": #d4e1e98c,
+  "background-color-dark-translucid": #a9bfcc8c,
+  "card-bg": #f8fbfc,
+  "card-bg-dark": #e4edf2,
   "nav-bg": #145c7b,
   // Élément de liste (DataList) posé sur le panneau latéral.
-  "list-item-bg": #ffffff,
-  "border-subtle": rgba(0, 0, 0, 0.06),
-  "border-soft": rgba(0, 0, 0, 0.12),
-  "overlay-bg": rgba(26, 26, 26, 0.55),
+  "list-item-bg": #f8fbfc,
+  "border-subtle": rgba(20, 92, 123, 0.14),
+  "border-soft": rgba(20, 92, 123, 0.26),
+  "overlay-bg": rgba(8, 34, 46, 0.6),
   // Logo texte bleu foncé (png) : neutre en clair, éclairci en sombre.
   "logo-filter": brightness(1),
 
   /* Textes */ "text-color-light": #ffffff,
-  "text-color-dark": #424242,
-  "text-color-muted": #698b9f,
-  "text-color-error": #dc3545,
+  "text-color-dark": #1b2a33,
+  "text-color-muted": #45616f,
+  "text-color-error": #c42535,
   // Texte posé sur un fond pastel/vif (badges, colonnes) : reste sombre
   // quel que soit le thème.
-  "text-color-on-light": #424242,
+  "text-color-on-light": #1b2a33,
   // Texte sur fond d'avertissement translucide.
   "warning-text-color": #8a6700,
 
@@ -69,17 +72,17 @@ $theme-light: (
   "info-color-light": #2ccce4,
   "info-color-dark": #117a8b,
 
-  /* Boutons */ "button-disabled-bg": #cccccc,
-  "button-disabled-text": #888888,
-  "border-color-loading": #96a1a5,
+  /* Boutons */ "button-disabled-bg": #c3d0d8,
+  "button-disabled-text": #5f717b,
+  "border-color-loading": #8aa2b0,
 
-  /* Ombres */ "shadow-color": rgba(0, 0, 0, 0.1),
-  "shadow-color-hover": rgba(0, 0, 0, 0.2),
+  /* Ombres */ "shadow-color": rgba(13, 52, 70, 0.16),
+  "shadow-color-hover": rgba(13, 52, 70, 0.28),
 
-  /* Effets de chargement */ "loading-primary-a": #82b4c9,
-  "loading-primary-b": #4c84a4,
-  "loading-secondary-a": #cfcdcd,
-  "loading-secondary-b": #96a1a5
+  /* Effets de chargement */ "loading-primary-a": #7fa9be,
+  "loading-primary-b": #3f7894,
+  "loading-secondary-a": #c3d0d8,
+  "loading-secondary-b": #8aa2b0
 );
 
 // Palette sombre alignée sur celle de @uvcdr/custom-form-system
