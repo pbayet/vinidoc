@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
+  "author": "Paul Bayet",
   "scripts": {
     "archive": "node ../scripts/archive-version.mjs",
     "release": "node ../scripts/bump-version.mjs",
