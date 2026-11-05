@@ -1,0 +1,77 @@
+[
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Génération des fiches techniques",
+    "CDESC": "À partir d'un article PFI, d'une langue et d'un modèle PowerPoint, l'application génère la fiche technique du vin en PDF ou en PowerPoint, avec photo produit facultative, aperçu et historique des générations. Un contrôle des longueurs bloque la génération si un texte dépasse la limite du modèle, sans jamais le tronquer."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Données logistiques calculées",
+    "CDESC": "Les données logistiques de l'article sont reprises dans la fiche ; les poids pleins et la hauteur de la palette chargée sont calculés à partir des poids à vide, avec le détail du calcul. Chaque valeur peut être corrigée pour une génération, sans modifier l'ERP."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Correction et ajustement avant génération",
+    "CDESC": "Les textes trop longs ou vides peuvent être corrigés sur le moment puis la génération reprend automatiquement ; sur une fiche validée, la correction crée une nouvelle version. La fiche peut aussi être ajustée pour une seule génération sans rien enregistrer, et les champs libres du modèle se saisissent directement."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Fiches œnologiques",
+    "CDESC": "Création et saisie des fiches œnologiques : caractéristiques du vin, échelles de 1 à 5, température de dégustation et textes par langue (cépages, terroir, vinification, dégustation, garde, accords). Liste avec recherche et filtres, compteurs de caractères comparés aux modèles et import de fiches depuis un fichier CSV."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Circuit de validation par le marketing",
+    "CDESC": "Les fiches sont soumises au marketing, individuellement ou toutes ensemble, puis validées ou refusées avec un motif depuis la page des fiches à valider, signalée par un compteur dans le menu. Une fiche validée est générée à partir de sa dernière version validée ; une fiche non validée l'est depuis la saisie en cours, avec un avertissement."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Modification d'une fiche validée et historique",
+    "CDESC": "Le bouton Modifier permet de faire évoluer une fiche validée : chaque enregistrement crée une nouvelle version validée, avec un commentaire facultatif. L'historique des actions et des versions est consultable sur chaque fiche."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Réservation des fiches en cours de modification",
+    "CDESC": "Une fiche ouverte en modification est réservée : les autres utilisateurs voient qui la modifie et depuis quand, et la consultent en lecture seule. La réservation est libérée à la sortie ou après une durée d'inactivité ; un bandeau propose de recharger une fiche modifiée par ailleurs."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Modèle par défaut et contrôle des textes d'une fiche",
+    "CDESC": "Chaque fiche peut avoir un modèle PowerPoint présélectionné à la génération. Ses textes peuvent être contrôlés avant soumission face à ce modèle, à un autre modèle ou à tous les modèles actifs de la langue, avec un rapport détaillé."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Gestion des modèles PowerPoint",
+    "CDESC": "Import de modèles .pptx avec détection et inspection des balises, longueur maximale et caractère obligatoire par balise, remplacement du fichier en conservant les réglages, activation et aperçu PDF rempli de faux texte. Un catalogue présente toutes les balises disponibles."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Paramètres de l'application",
+    "CDESC": "Les paramètres des calculs logistiques (masse volumique du vin, support palette) et la durée de réservation d'une fiche sont modifiables sans développement depuis la page Paramètres."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Thème clair / sombre / système",
+    "CDESC": "Choix du thème de l'application dans les paramètres, enregistré pour l'utilisateur. Le thème par défaut, commun à toutes ses applications, peut être modifié directement depuis une fenêtre."
+  },
+  {
+    "CTYPE": "ADDED",
+    "CTITLE": "Menu et sélecteur d'applications",
+    "CDESC": "Menu latéral rétractable adapté aux droits de l'utilisateur, avec le logo de l'application, les nouveautés de version, le sélecteur des autres applications du portail et le retour au portail."
+  },
+  {
+    "CTYPE": "UPDATED",
+    "CTITLE": "Présentation des écrans",
+    "CDESC": "Les onglets de langue, les échelles et les boutons sont harmonisés avec les autres applications UVCDR, et les pages Modèles et Paramètres sont réorganisées en sections."
+  },
+  {
+    "CTYPE": "FIX",
+    "CTITLE": "Page de connexion et nom de l'application",
+    "CDESC": "Le filigrane de la page de connexion s'affiche de nouveau et reste discret en mode sombre ; correction du nom de l'application et de l'affichage de son logo dans le menu."
+  },
+  {
+    "CTYPE": "REFACTOR",
+    "CTITLE": "Qualité et outillage",
+    "CDESC": "Suppression du code, des composants et des dépendances inutilisés, abandon de l'étape de post-build, mise à jour des outils (Vite 8, TypeScript 6, ESLint 10) et des bibliothèques internes UVCDR installées depuis le serveur interne."
+  }
+]
