@@ -3,8 +3,8 @@ import "./PageLayout.scss";
 import { CustomButton, Icon } from "@uvcdr/custom-form-system";
 
 interface PageLayoutProps {
-  /** Titre affiché en haut, figé au scroll */
-  title: string;
+  /** Titre affiché en haut, figé au scroll (texte simple, ou contenu enrichi — ex. logo + texte) */
+  title: React.ReactNode;
   /** Contenu scrollable de la page */
   children: React.ReactNode;
   /** Éléments optionnels alignés à droite du titre (boutons, badges…) */
@@ -62,14 +62,20 @@ const PageLayout: React.FC<PageLayoutProps> = ({
       >
         {children}
 
+        {/* Conteneur dédié : posé sur le bouton lui-même, `position: fixed`
+            était écrasé par le style de CustomButton — le bouton retombait
+            alors dans le flux, sous le contenu, et allongeait le défilement. */}
         {showScrollToTop && isScrolled && (
-          <CustomButton
-            className="page-layout__scroll-top"
-            iconOnly
-            leftIcon={<Icon iconName="arrow-up" />}
-            onClick={scrollToTop}
-            size="md"
-          ></CustomButton>
+          <div className="page-layout__scroll-top">
+            <CustomButton
+              iconOnly
+              leftIcon={<Icon iconName="arrow-up" />}
+              onClick={scrollToTop}
+              size="md"
+            >
+              Retour en haut de la page
+            </CustomButton>
+          </div>
         )}
       </main>
     </div>

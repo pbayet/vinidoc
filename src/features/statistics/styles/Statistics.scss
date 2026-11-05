@@ -1,0 +1,172 @@
+/* src/features/statistics/styles/Statistics.scss */
+/* Indicateurs et graphiques : composants de @uvcdr/statistics-system (cf.
+   StatistiquesPage.tsx). Ce fichier ne garde que la mise en page propre à la
+   page — même structure que la page Statistiques de ticketing/FSA (toolbar
+   de filtres, grille des cartes, « carte » habillant chaque graphique). */
+
+// ── Skeleton loading ─────────────────────────────────────────────────────────
+@mixin skeleton($width: 100%, $height: $font-size-large) {
+  width: $width;
+  height: $height;
+  background: $loading-secondary;
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 5px;
+  overflow: hidden;
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
+}
+
+@mixin card {
+  padding: $padding-medium;
+  background: $card-bg;
+  border-radius: $border-radius-small;
+  box-shadow: $box-shadow;
+}
+
+.statistics-page {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-large;
+  width: 100%;
+  color: $text-color-dark;
+
+  &__toolbar {
+    @include card;
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: $margin-medium;
+  }
+
+  &__toolbar-spacer {
+    flex: 1;
+  }
+
+  &__filter {
+    min-width: 160px;
+  }
+
+  &__loaded-at {
+    align-self: center;
+    font-size: $font-size-small;
+    color: $text-color-muted;
+  }
+
+  &__section-title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: $margin-small;
+    margin: $margin-small 0 0;
+    font-size: $font-size-large;
+    color: $text-color-dark;
+
+    small {
+      font-size: $font-size-small;
+      font-weight: 400;
+      color: $text-color-muted;
+    }
+  }
+
+  &__kpis {
+    margin: 0;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: $margin-medium;
+    align-items: stretch;
+  }
+
+  &__alert,
+  &__notice {
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+    padding: $padding-small $padding-medium;
+    border-radius: $border-radius-small;
+    font-size: $font-size-small;
+  }
+
+  &__alert {
+    background: with-alpha($danger-color, 0.12);
+    color: $danger-color;
+  }
+
+  &__notice {
+    background: with-alpha($info-color, 0.12);
+    color: $text-color-dark;
+  }
+}
+
+/* ── Carte habillant un graphique ── */
+
+.statistics-page__chart-card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: $margin-small;
+  min-width: 0;
+
+  &--wide {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    gap: $margin-small;
+    font-weight: 700;
+    color: $text-color-dark;
+  }
+}
+
+.statistics-page__chart-hint {
+  margin: 0;
+  font-size: $font-size-small;
+  color: $text-color-muted;
+}
+
+.statistics-page__chart-empty {
+  display: flex;
+  align-items: center;
+  gap: $margin-small;
+  padding: $padding-medium 0;
+  color: $text-color-muted;
+  font-size: $font-size-small;
+}
+
+.statistics-page__chart-skeleton {
+  @include skeleton(100%, 160px);
+}
+
+/* ── Pile de <ProgressBar /> ── */
+
+.statistics-page__progress-stack {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-small;
+}
+
+/* ── Contenu central des donuts ── */
+
+.statistics-page__donut-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+
+  strong {
+    font-size: $font-size-xl;
+    color: $text-color-dark;
+  }
+
+  span {
+    font-size: $font-size-small;
+    color: $text-color-muted;
+  }
+}

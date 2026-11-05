@@ -7,6 +7,7 @@ import OenologiePage from "../../pages/OenologiePage";
 import ValidationPage from "../../pages/ValidationPage";
 import ModelesPage from "../../pages/ModelesPage";
 import ParametresPage from "../../pages/ParametresPage";
+import StatistiquesPage from "../../pages/StatistiquesPage";
 import NotFoundPage from "../../pages/NotFoundPage";
 
 /*
@@ -65,6 +66,13 @@ const RouterConfig: React.FC = () => {
         <Route path="/modeles/new" element={null} />
         <Route path="/modeles/:tplid" element={null} />
       </Route>
+
+      {/* Statistiques (fiches œnologiques, générations) : tout utilisateur
+          VINIDOC, hors accès restreint aux balises de fusion */}
+      <Route
+        path="/statistiques"
+        element={<PrivateRoute component={StatistiquesPage} />}
+      />
 
       {/* Paramètres de l'utilisateur (thème) */}
       <Route

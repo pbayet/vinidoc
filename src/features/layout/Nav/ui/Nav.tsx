@@ -145,6 +145,14 @@ const Nav: React.FC<NavProps> = ({
           isActive: (p) => p === "/modeles" || p.startsWith("/modeles/"),
           show: rights.TEMPLATES || mergeFieldsOnly,
         },
+        {
+          label: "Statistiques",
+          icon: "chart-pie",
+          path: "/statistiques",
+          isActive: (p) => p === "/statistiques",
+          // Même règle que la <Route path="/statistiques"> de router.tsx.
+          show: !mergeFieldsOnly,
+        },
       ],
     },
     {

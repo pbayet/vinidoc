@@ -14,6 +14,8 @@ import "@uvcdr/modal/styles.css";
 import "@uvcdr/modal/styles-dark.css";
 import "@uvcdr/confirm-notify-system/dist/index.css";
 import "@uvcdr/confirm-notify-system/dist/index-dark.css";
+import "@uvcdr/statistics-system/dist/index.css";
+import "@uvcdr/statistics-system/dist/index-dark.css";
 
 import {
   API_URL,

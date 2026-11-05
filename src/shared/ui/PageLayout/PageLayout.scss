@@ -30,6 +30,8 @@
     // z-index pour passer au-dessus du contenu scrollé
     position: relative;
     z-index: 10;
+
+    min-height: 32px;
   }
 
   &__title {

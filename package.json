@@ -21,8 +21,9 @@
     "@fortawesome/react-fontawesome": "^3.5.0",
     "@uvcdr/api-auth-system": "https://dev.union-vignerons.com/npm/uvcdr/api-auth-system/0.1.0",
     "@uvcdr/confirm-notify-system": "https://dev.union-vignerons.com/npm/uvcdr/confirm-notify-system/0.1.0",
-    "@uvcdr/custom-form-system": "https://dev.union-vignerons.com/npm/uvcdr/custom-form-system/3.1.1",
+    "@uvcdr/custom-form-system": "https://dev.union-vignerons.com/npm/uvcdr/custom-form-system/3.3.0",
     "@uvcdr/modal": "https://dev.union-vignerons.com/npm/uvcdr/modal/0.1.0",
+    "@uvcdr/statistics-system": "https://dev.union-vignerons.com/npm/uvcdr/statistics-system/0.3.0",
     "deep-diff": "^1.0.2",
     "lodash": "^4.17.21",
     "lz-string": "^1.5.0",
@@ -51,6 +52,7 @@
     "@uvcdr/confirm-notify-system": false,
     "@uvcdr/custom-form-system": false,
     "@uvcdr/modal": false,
+    "@uvcdr/statistics-system": false,
     "@swc/core": false,
     "@parcel/watcher": false
   }
