@@ -51,7 +51,7 @@ npm run deploy[:<cible>]
 ```
 
 - **Le build se fait en local**, car les paquets `@uvcdr/*` ne sont accessibles que depuis le réseau interne. Le serveur ne fait que copier des fichiers.
-- Chaque cible a son runner, reconnu par son **label** (`test`, `prod`, éventuellement `admin`). Les cibles, serveurs et dossiers de ce projet sont dans le tableau [Ce projet](#ce-projet).
+- Chaque cible a son runner, reconnu par son **label** (`test`, `prod`, éventuellement `ext`). Les cibles, serveurs et dossiers de ce projet sont dans le tableau [Ce projet](#ce-projet).
 - Le workflow `ci.yml` (lint, build…) tourne **uniquement sur le runner `test`**. Les runners des autres cibles ne font jamais de CI.
 
 ---
@@ -295,14 +295,16 @@ Dans le `package.json` du projet :
 
 Le script commun est `UNIS/scripts/deploy.mjs`. Il ne demande aucune configuration propre au projet.
 
-### 6.3 Cible supplémentaire (ex. `admin`)
+### 6.3 Cible supplémentaire (ex. `ext`) et autre script de build
 
-Un projet qui a une version admin (comme `declaration-ingredients`) peut ajouter une cible `admin` :
-1. dans `package.json` : `"deploy:admin": "node ../scripts/deploy.mjs admin"`. Ce script lance `npm run build:admin` ;
-2. dans `deploy.yml` : ajouter `admin` aux `options` et une ligne `"admin" { ... }` dans l'étape « Configuration » ;
-3. sur le serveur de la version admin : installer un runner avec le label `admin`.
+Un projet publié aussi sur le serveur externe en DMZ peut ajouter une cible `ext` :
+1. dans `package.json` : `"deploy": "node ../scripts/deploy.mjs ext"`. Ce script lance `npm run build` ;
+2. dans `deploy.yml` : ajouter `ext` aux `options` et une ligne `"ext" { ... }` dans l'étape « Configuration » ;
+3. sur le serveur externe : installer un runner avec le label `ext`.
 
-Les cibles connues de `deploy.mjs` sont `test`, `prod` et `admin` (objet `TARGETS`). Pour une autre cible, il faut l'y ajouter avec son script de build.
+Un 2e argument remplace le script de build de la cible. Exemple de `declaration-ingredients`, dont la version admin est publiée en prod : `"deploy:admin": "node ../scripts/deploy.mjs prod build:admin"`.
+
+Les cibles connues de `deploy.mjs` sont `test`, `prod` et `ext` (objet `TARGETS`). Pour une autre cible, il faut l'y ajouter avec son script de build par défaut.
 
 ### 6.4 Poste du développeur
 
@@ -383,7 +385,7 @@ robocopy "<disque>\SITES\_backups\<dossier>\<yyyyMMdd-HHmmss>" "<disque>\SITES\<
 | `504 Gateway Time-out` au téléchargement du runner | Incident côté GitHub sur les releases. Les en-têtes `X-GitHub-Request-Id` le confirment. | Télécharger via l'API (§ 4.2), ou depuis un poste puis copier le fichier sur le serveur. |
 | Le run reste **Queued** indéfiniment | Aucun runner en ligne avec le bon label. | Vérifier le service (§ 8) et les labels sur GitHub. Pour un serveur en DMZ, vérifier aussi l'accès sortant vers GitHub (§ 3). |
 | `Dossier du site non configuré pour la cible ...` | Cible absente de l'étape « Configuration » de `deploy.yml`. | La renseigner (§ 6.1) et pousser sur `main`. |
-| `Cible attendue : test ou prod ou admin` | Cible inconnue de `deploy.mjs`. | L'ajouter à `TARGETS` dans `UNIS/scripts/deploy.mjs` (§ 6.3). |
+| `Cible attendue : test ou prod ou ext` | Cible inconnue de `deploy.mjs`. | L'ajouter à `TARGETS` dans `UNIS/scripts/deploy.mjs` (§ 6.3). |
 | `index.html absent de la branche deploy-<cible>` | La branche n'a pas été poussée, ou le build est vide. | Relancer `npm run deploy[:<cible>]` et vérifier `dist/index.html`. |
 | `Accès refusé` / `robocopy 16` | SERVICE RÉSEAU n'a pas le droit d'écrire. | Refaire les `icacls` (§ 5). |
 | `git : terme non reconnu` dans le job | Git absent, ou installé après le runner. | Installer Git, l'ajouter au fichier `.path`, puis redémarrer le service. |
