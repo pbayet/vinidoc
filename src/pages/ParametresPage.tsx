@@ -1,65 +1,90 @@
-import React, { useState } from "react";
-import { CustomButton, Icon, CustomFormSection } from "@uvcdr/custom-form-system";
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageLayout from "../shared/ui/PageLayout/PageLayout";
-import ThemePicker from "../shared/ui/ThemePicker/ThemePicker";
-import DefaultThemeModal from "../shared/ui/DefaultThemeModal/DefaultThemeModal";
-import { THEME_LABELS } from "../shared/lib/theme/theme";
-import { useUserTheme } from "../shared/lib/theme/userTheme";
-import AppParamsCard from "../features/vinidoc/params/AppParamsCard";
+import "../features/settings/styles/Settings.scss";
+import {
+  CustomButton,
+  CustomButtonGroup,
+  Icon,
+} from "@uvcdr/custom-form-system";
 import { useMergeFieldsOnly } from "../features/auth/hooks/useMergeFieldsOnly";
+import SettingsGeneral from "../features/settings/ui/SettingsGeneral";
+import SettingsDisplay from "../features/settings/ui/SettingsDisplay";
+
+type SettingsTab = "general" | "display";
+
+const SETTINGS_PATH = "/parametres";
+const SETTINGS_DISPLAY_PATH = "/parametres/affichage";
+
+const SETTINGS_TABS: {
+  label: string;
+  value: SettingsTab;
+  path: string;
+  icon: string;
+}[] = [
+  {
+    label: "Général",
+    value: "general",
+    path: SETTINGS_PATH,
+    icon: "sliders",
+  },
+  {
+    label: "Affichage",
+    value: "display",
+    path: SETTINGS_DISPLAY_PATH,
+    icon: "circle-half-stroke",
+  },
+];
 
 /**
- * Paramètres de l'utilisateur. Apparence : thème de VINIDOC pour son compte,
- * enregistré en base (usersmanager/theme, APPCOD VINDOC) et appliqué
- * immédiatement ; « Par défaut » reprend son thème par défaut (commun à
- * toutes ses applications), modifiable ici dans une modale.
- * Paramètres de l'application : calculs logistiques et réservation des
- * fiches (cf. AppParamsCard).
+ * Page Paramètres : porte la seule gestion des onglets, chacun synchronisé
+ * avec sa route (/parametres, /parametres/affichage).
+ *  - Général : SettingsGeneral (paramètres de l'application ; modifiables
+ *    avec le droit PARAMS, consultables par tous)
+ *  - Affichage : SettingsDisplay (thème, pour tous)
+ * ⚠️ TEMPORAIRE — accès restreint (cf. useMergeFieldsOnly) : seul l'onglet
+ * Affichage, sans barre d'onglets.
+ *
+ * Même organisation que la page Paramètres de FSA.
  */
 const ParametresPage: React.FC = () => {
-  const { theme, isLoading, isSaving, loadError, setApplicationTheme } =
-    useUserTheme();
-  const [isDefaultThemeOpen, setDefaultThemeOpen] = useState(false);
-  // ⚠️ TEMPORAIRE — accès restreint : section « Apparence » seule
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const mergeFieldsOnly = useMergeFieldsOnly();
 
+  const selectedTab: SettingsTab = pathname.startsWith(SETTINGS_DISPLAY_PATH)
+    ? "display"
+    : "general";
+  const activeTab: SettingsTab = mergeFieldsOnly ? "display" : selectedTab;
+
   return (
-    <PageLayout title="Paramètres">
-      <CustomFormSection
-        title="Apparence"
-        icon={<Icon iconName="circle-half-stroke" />}
-        description="Thème d'affichage de l'application pour votre compte (enregistré sur le serveur, commun à tous vos postes). « Par défaut » reprend votre thème par défaut, commun à toutes vos applications."
-      >
-        <ThemePicker
-          value={theme?.application ?? null}
-          defaultOption={`Par défaut${theme ? ` (${THEME_LABELS[theme.default]})` : ""}`}
-          onChange={(value) => void setApplicationTheme(value)}
-          disabled={isLoading || isSaving || loadError}
-          ariaLabel="Thème d'affichage"
-        />
-        {loadError && (
-          <p className="vd-settings__error">
-            Impossible de charger votre préférence de thème.
-          </p>
-        )}
-        <div className="vd-settings__default">
-          <CustomButton
-            leftIcon={<Icon iconName="palette" />}
-            variant="neutral"
-            size="xs"
-            onClick={() => setDefaultThemeOpen(true)}
-          >
-            Modifier mon thème par défaut
-          </CustomButton>
-        </div>
-      </CustomFormSection>
+    <PageLayout title="Paramètres" showScrollToTop>
+      {!mergeFieldsOnly && (
+        <CustomButtonGroup
+          className="settings__tabs"
+          menuStyle={"tabs"}
+          size="sm"
+          selectionMode="single"
+          value={activeTab}
+          onValueChange={(v) => {
+            const tab = SETTINGS_TABS.find((t) => t.value === v);
+            if (tab) navigate(tab.path);
+          }}
+        >
+          {SETTINGS_TABS.map(({ label, value, icon }) => (
+            <CustomButton
+              key={value}
+              value={value}
+              leftIcon={<Icon iconName={icon} />}
+            >
+              {label}
+            </CustomButton>
+          ))}
+        </CustomButtonGroup>
+      )}
 
-      {!mergeFieldsOnly && <AppParamsCard />}
-
-      <DefaultThemeModal
-        isOpen={isDefaultThemeOpen}
-        onClose={() => setDefaultThemeOpen(false)}
-      />
+      {activeTab === "general" && <SettingsGeneral />}
+      {activeTab === "display" && <SettingsDisplay />}
     </PageLayout>
   );
 };

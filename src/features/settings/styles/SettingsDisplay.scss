@@ -1,0 +1,62 @@
+/* src/features/settings/styles/SettingsDisplay.scss */
+
+.settings-display {
+  display: flex;
+  flex-direction: column;
+  gap: $margin-medium;
+  width: 100%;
+  max-width: 900px;
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: $margin-medium;
+
+    padding: $padding-medium;
+    background: $card-bg;
+    border-radius: $border-radius-small;
+    box-shadow: $box-shadow;
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: $margin-small;
+
+    padding-bottom: $padding-small;
+    border-bottom: 1px solid $border-subtle;
+
+    svg,
+    .icon {
+      margin-top: 0.2rem;
+      font-size: $font-size-large;
+      color: $primary-color-dark;
+      flex-shrink: 0;
+    }
+
+    h4 {
+      margin: 0 0 0.15rem;
+      font-size: $font-size-medium;
+      color: $text-color-dark;
+    }
+
+    p {
+      margin: 0;
+      font-size: $font-size-small;
+      color: $text-color-muted;
+    }
+  }
+
+  // La carte est en flex colonne : sans ça, le groupe de boutons
+  // s'étirerait sur toute la largeur.
+  &__picker {
+    align-self: flex-start;
+    max-width: 100%;
+  }
+
+  &__error {
+    margin: 0;
+    font-size: $font-size-small;
+    color: $text-color-error;
+  }
+}

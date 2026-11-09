@@ -74,13 +74,17 @@ const RouterConfig: React.FC = () => {
         element={<PrivateRoute component={StatistiquesPage} />}
       />
 
-      {/* Paramètres de l'utilisateur (thème) */}
+      {/* Paramètres : onglets Général (paramètres de l'application) et
+          Affichage (thème), chacun sur sa route (cf. ParametresPage).
+          Route enfant sans élément : la page reste montée. */}
       <Route
         path="/parametres"
         element={
           <PrivateRoute component={ParametresPage} allowMergeFieldsOnly />
         }
-      />
+      >
+        <Route path="/parametres/affichage" element={null} />
+      </Route>
 
       {/* Ancienne URL éventuelle */}
       <Route path="/fiches" element={<Navigate to="/oenologie" replace />} />

@@ -161,7 +161,7 @@ const Nav: React.FC<NavProps> = ({
           label: "Paramètres",
           icon: "gear",
           path: "/parametres",
-          isActive: (p) => p === "/parametres",
+          isActive: (p) => p.startsWith("/parametres"),
         },
       ],
     },
