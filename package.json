@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "reload:node-modules": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Remove-Item 'node_modules' -Recurse -ErrorAction SilentlyContinue\" && powershell -NoProfile -ExecutionPolicy Bypass -Command \"Remove-Item 'package-lock.json' -ErrorAction SilentlyContinue\" && npm install && npm run dev",
     "deploy": "node ../scripts/deploy.mjs prod",
-    "deploy:test": "node ../scripts/deploy.mjs test"
+    "deploy:test": "node ../scripts/deploy.mjs test",
+    "deploy:all": "npm run deploy && npm run deploy:test"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
