@@ -1,0 +1,85 @@
+# Déploiement : copie le build dans le dossier du site, sur le serveur de test
+# ou de prod.
+#
+# Le build est fait EN LOCAL par « npm run deploy:test » / « npm run deploy »
+# (scripts/deploy.mjs) : il pousse dist/ sur la branche "deploy-<cible>" puis
+# lance ce workflow, qui se contente de copier cette branche dans le site.
+#
+# Chaque cible tourne sur le runner auto-hébergé qui porte son label :
+#   test  → runner du serveur web de dev (VM-DEV), label "test"
+#   prod  → runner du serveur web de prod (VM-APPS), label "prod"
+# La version en ligne est sauvegardée avant d'être remplacée.
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Serveur cible
+        type: choice
+        options: [test, prod]
+        default: test
+        required: true
+
+run-name: Deploy ${{ inputs.target }}
+
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, "${{ inputs.target }}"]
+    timeout-minutes: 10
+    steps:
+      # Dossiers du site par cible.
+      - name: Configuration (${{ inputs.target }})
+        shell: powershell
+        run: |
+          switch ("${{ inputs.target }}") {
+            "test" { $site = "E:\SITES\vinidoc"; $backups = "E:\SITES\_backups\vinidoc" }
+            "prod" { $site = "D:\SITES\vinidoc"; $backups = "D:\SITES\_backups\vinidoc" }
+          }
+          if (-not $site) { throw "Dossier du site non configuré pour la cible ${{ inputs.target }} (deploy.yml)" }
+          "SITE_PATH=$site" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BACKUP_ROOT=$backups" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BACKUPS_TO_KEEP=5" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Récupération du build (branche deploy-${{ inputs.target }})
+        uses: actions/checkout@v4
+        with:
+          ref: deploy-${{ inputs.target }}
+
+      - name: Vérification du build
+        shell: powershell
+        run: |
+          if (-not (Test-Path "index.html")) { throw "index.html absent de la branche deploy-${{ inputs.target }} : déploiement annulé" }
+          Write-Host (git log -1 --format=%s)
+
+      - name: Sauvegarde de la version en ligne
+        shell: powershell
+        run: |
+          if (Test-Path $env:SITE_PATH) {
+            $dest = Join-Path $env:BACKUP_ROOT (Get-Date -Format "yyyyMMdd-HHmmss")
+            robocopy $env:SITE_PATH $dest /E /NFL /NDL /NJH /NJS | Out-Null
+            if ($LASTEXITCODE -ge 8) { throw "Échec de la sauvegarde (robocopy $LASTEXITCODE)" }
+            Write-Host "Sauvegarde : $dest"
+
+            # Ne garde que les N dernières sauvegardes.
+            Get-ChildItem $env:BACKUP_ROOT -Directory |
+              Sort-Object Name -Descending |
+              Select-Object -Skip ([int]$env:BACKUPS_TO_KEEP) |
+              Remove-Item -Recurse -Force
+          }
+          exit 0
+
+      - name: Publication dans le dossier du site
+        shell: powershell
+        run: |
+          # /MIR : le site devient identique au build (supprime les anciens [hash].js).
+          # /XD .git : dossier Git du checkout, jamais copié.
+          # /XF web.config : fichier propre au serveur, jamais écrasé ni supprimé.
+          robocopy . $env:SITE_PATH /MIR /XD .git /XF web.config /NFL /NDL /NP
+          if ($LASTEXITCODE -ge 8) { throw "Échec de la publication (robocopy $LASTEXITCODE)" }
+          Write-Host "Version publiée dans $env:SITE_PATH"
+          exit 0

@@ -1,0 +1,45 @@
+# Intégration continue : lint et build sur les PR,
+# ou à la demande (Actions > CI > Run workflow, ou « gh workflow run ci.yml »).
+#
+# Pas de déclenchement sur push : le runner de CI (VM-DEV, label "test") est
+# aussi celui du déploiement de test, et une CI lancée à chaque push (donc à
+# chaque « npm run deploy:test ») ferait attendre le déploiement.
+#
+# runs-on [self-hosted, test] : la CI ne doit jamais tourner sur les runners
+# des autres cibles (prod, admin…), qui ne servent qu'à publier le site.
+#
+# Runner auto-hébergé obligatoire : les paquets @uvcdr/* sont servis par
+# dev.union-vignerons.com, qui n'est joignable que depuis le réseau interne
+# (IP privée), donc pas depuis les runners hébergés par GitHub.
+# Installation : voir RUNNER.md.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: [self-hosted, test]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      # npm install (et non npm ci) : package-lock.json n'est pas versionné.
+      - name: Installation
+        run: npm install --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint
+
+      # tsc -b + vite build (configuration de production)
+      - name: Build (production)
+        run: npm run build
