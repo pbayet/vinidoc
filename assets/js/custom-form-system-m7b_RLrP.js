@@ -1,0 +1,1 @@
+var e={};throw Error(`Could not resolve "pdfjs-dist" imported by "@uvcdr/custom-form-system". Is it installed?`);export{e as default};
