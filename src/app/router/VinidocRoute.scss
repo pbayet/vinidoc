@@ -1,13 +1,4 @@
-.body {
-  width: 100%;
-  height: 100dvh;
-  display: flex;
-  justify-content: start;
-  align-items: start;
-  overflow: hidden;
-}
-
-// Erreur de chargement des droits VINIDOC (cf. PrivateRoute)
+// Erreur de chargement des droits VINIDOC (cf. VinidocRoute)
 .private-route-error {
   flex: 1;
   height: 100%;

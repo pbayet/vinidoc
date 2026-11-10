@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import PageLayout from "../shared/ui/PageLayout/PageLayout";
+import { PageLayout } from "@uvcdr/app-shell";
 import { useWebSocket } from "../shared/lib/hooks/useWebSocket";
 import { useVinidocApi } from "../features/vinidoc/api/useVinidocApi";
 import GenerationForm from "../features/vinidoc/generation/GenerationForm";

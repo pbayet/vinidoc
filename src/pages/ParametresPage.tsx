@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import PageLayout from "../shared/ui/PageLayout/PageLayout";
+import { PageLayout } from "@uvcdr/app-shell";
 import "../features/settings/styles/Settings.scss";
 import {
   CustomButton,

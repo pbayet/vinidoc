@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../features/statistics/styles/Statistics.scss";
-import PageLayout from "../shared/ui/PageLayout/PageLayout";
+import { PageLayout } from "@uvcdr/app-shell";
 import {
   BarChart,
   LineChart,

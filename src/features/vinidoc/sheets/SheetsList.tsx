@@ -7,7 +7,7 @@ import {
   Icon,
   type SelectOption,
 } from "@uvcdr/custom-form-system";
-import PageLayout from "../../../shared/ui/PageLayout/PageLayout";
+import { PageLayout } from "@uvcdr/app-shell";
 import { useWebSocket } from "../../../shared/lib/hooks/useWebSocket";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";

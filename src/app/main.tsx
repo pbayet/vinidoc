@@ -9,13 +9,14 @@ import { BrowserRouter } from "react-router-dom";
 import "@uvcdr/custom-form-system/dist/index.css";
 import "@uvcdr/custom-form-system/dist/index-dark.css";
 
-import { ModalProvider } from "@uvcdr/modal";
 import "@uvcdr/modal/styles.css";
 import "@uvcdr/modal/styles-dark.css";
 import "@uvcdr/confirm-notify-system/dist/index.css";
 import "@uvcdr/confirm-notify-system/dist/index-dark.css";
 import "@uvcdr/statistics-system/dist/index.css";
 import "@uvcdr/statistics-system/dist/index-dark.css";
+import "@uvcdr/app-shell/styles.css";
+import "@uvcdr/app-shell/styles-dark.css";
 
 import {
   API_URL,
@@ -26,15 +27,6 @@ import {
 } from "./config";
 
 import { configureApiAuthSystem } from "@uvcdr/api-auth-system";
-import {
-  ConfirmProvider,
-  NotificationProvider,
-} from "@uvcdr/confirm-notify-system";
-import {
-  ConfirmStoreInitializer,
-  NotifyStoreInitializer,
-  ApiMessageInitializer,
-} from "./AppInitializers";
 import { initTheme } from "../shared/lib/theme/theme";
 
 // Ajoute toutes les icônes Solid dans la librairie
@@ -54,17 +46,10 @@ configureApiAuthSystem({
 
 const appBase = import.meta.env.VITE_APP_BASE ?? "/";
 
+// Providers communs (modales, notifications, confirmations, auth, socle) :
+// montés par <UnisAppProviders> dans App.tsx (@uvcdr/app-shell).
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <BrowserRouter basename={appBase}>
-    <ModalProvider>
-      <NotificationProvider>
-        <ConfirmProvider>
-          <ConfirmStoreInitializer />
-          <NotifyStoreInitializer />
-          <ApiMessageInitializer />
-          <App />
-        </ConfirmProvider>
-      </NotificationProvider>
-    </ModalProvider>
+    <App />
   </BrowserRouter>,
 );
