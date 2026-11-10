@@ -16,7 +16,7 @@ export function useAppNavigation(): NavSection[] {
   // `requireRight` sur les <Route> correspondantes de router.tsx : un
   // utilisateur sans ce droit ne voit ni les liens, ni les pages si
   // atteintes directement par URL.
-  const { rights } = useVinidoc();
+  const { rights, pendingCount } = useVinidoc();
   // ⚠️ TEMPORAIRE — accès restreint : liens « Modèles PowerPoint » et
   // « Paramètres » seuls
   const mergeFieldsOnly = useMergeFieldsOnly();
@@ -35,6 +35,9 @@ export function useAppNavigation(): NavSection[] {
           icon: "wine-bottle",
           path: "/oenologie",
           isActive: (p) => p === "/oenologie" || p.startsWith("/oenologie/"),
+          // Pastille : fiches en attente de validation (validateurs seuls).
+          badge: rights.VALIDATE ? pendingCount : undefined,
+          badgeTitle: `${pendingCount} fiche${pendingCount > 1 ? "s" : ""} à valider`,
           show: !mergeFieldsOnly,
         },
       ],
