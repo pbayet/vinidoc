@@ -129,33 +129,33 @@ sauf le modèle `.env.exemple`.
 ```
 src/
 ├── app/
-│   ├── api/              # Couche HTTP (apiRequest, apiRequestAll, websocket, hooks)
-│   ├── context/          # WebSocketContext
-│   ├── router/           # router.tsx — déclaration des routes
-│   ├── App.tsx           # AuthProvider + WebSocketProvider + VinidocProvider + Router
-│   ├── AppInitializers.tsx  # stores confirm/notify, messages API, thème utilisateur
+│   ├── api/              # apiRequest (@uvcdr/api-auth-system + fileDeletings via @uvcdr/attachments)
+│   ├── router/           # router.tsx — déclaration des routes, VinidocRoute
+│   ├── App.tsx           # UnisAppProviders (@uvcdr/app-shell) + RealtimeProvider + VinidocProvider + Router
+│   ├── navigation.ts     # Menu de la Nav (configuration)
+│   ├── queryClient.ts    # Cache des requêtes (@uvcdr/data-query)
 │   ├── config.ts         # Variables d'env exportées
-│   └── main.tsx          # Point d'entrée (providers, styles @uvcdr clair + sombre)
+│   └── main.tsx          # Point d'entrée (configuration des paquets, styles @uvcdr clair + sombre)
 │
-├── entities/             # application/versions, attachment, auth, vinidoc
-├── features/
-│   ├── auth/             # PrivateRoute (+ requireRight)
-│   ├── layout/
-│   │   ├── hooks/        # useAppVersion
-│   │   └── Nav/          # Sidebar + modales (version, utilisateur, application)
-│   ├── notFound/
-│   └── vinidoc/          # cf. section Code
-│
+├── entities/             # application, auth, vinidoc
+├── features/             # auth (accès restreint), settings, statistics, vinidoc (cf. section Code)
 ├── pages/                # cf. section Code
 └── shared/
-    ├── lib/
-    │   ├── hooks/        # useWebSocket
-    │   ├── theme/        # theme.ts (application du thème), userTheme.ts (préférence en base)
-    │   ├── types/        # Types globaux (deep-diff, etc.)
-    │   └── utils/        # Fonctions utilitaires (date, cache, storage, …)
-    ├── styles/           # _variables.scss (palettes + tokens), _theme.scss, global.scss
-    └── ui/               # PageLayout, SectionCard, ThemePicker
+    └── styles/           # _variables.scss (relais de @uvcdr/unis-theme/scss), global.scss, layout.scss
 ```
+
+Socle commun fourni par les paquets `@uvcdr/*` (plus de copie locale) :
+
+| Paquet | Rôle dans VINIDOC |
+|---|---|
+| `@uvcdr/app-shell` | Nav, PrivateRoute, PageLayout, connexion, versions, maintenance |
+| `@uvcdr/unis-theme` | Palette `--unis-*`, variables SCSS, thème utilisateur, ThemePicker, DefaultThemeModal, script anti-flash |
+| `@uvcdr/utils` | Fonctions utilitaires (cache, stockage, dates, CSV : `parseCsvTable` de l'import des fiches…) |
+| `@uvcdr/contracts` | Calculs sur les utilisateurs et groupes (nom, mention, email, permissions) |
+| `@uvcdr/realtime` | Connexion WebSocket, évènements `vinidoc.*`, réservation des fiches (`useEditLock`, via `useSheetLock`) |
+| `@uvcdr/data-query` | Cache des requêtes : pastille « à valider », balises du modèle choisi |
+| `@uvcdr/attachments` | Suppression de fichiers (`fileDeletings` d'`apiRequest`) |
+| `@uvcdr/custom-list` | Dépendance installée, pas encore utilisée (les listes de VINIDOC sont des tableaux) |
 
 ---
 
@@ -163,15 +163,15 @@ src/
 
 - Thème appliqué par l'attribut `data-theme="dark"` sur `<html>`, le même que
   celui attendu par les feuilles « -dark » des paquets `@uvcdr/*`.
-- Couleurs en variables CSS `--vinidoc-*` (palettes `$theme-light` / `$theme-dark`
-  dans `_variables.scss`, émises par `_theme.scss`). Les variables Sass gardent
-  leurs noms historiques ; comme ce sont des `var()`, utiliser `with-alpha()` et
-  `shade()` au lieu de `rgba()` / `darken()`.
-- Préférence enregistrée en base par utilisateur (`usersmanager/theme`,
+- Couleurs en variables CSS `--unis-*` (`@uvcdr/unis-theme/theme.css`). Les
+  variables Sass gardent leurs noms historiques (`_variables.scss` relaie
+  `@uvcdr/unis-theme/scss`) ; comme ce sont des `var()`, utiliser
+  `with-alpha()` et `shade()` au lieu de `rgba()` / `darken()`.
+- Préférence enregistrée en base par utilisateur (`usersmanager/themes`,
   `APPCOD=VINDOC`), choisie dans **Paramètres** (`/parametres`) : Par défaut
   (thème par défaut de l'utilisateur, commun à toutes les applications), Clair, Sombre ou
   Système. Elle est mise en cache dans `localStorage` (`vinidoc-theme`) pour le
-  script anti-flash de `index.html`.
+  script anti-flash ajouté à `index.html` par `unisThemePlugin` (vite.config.ts).
 - Le bouton « Modifier mon thème par défaut » ouvre une modale (Clair /
   Sombre / Système) qui enregistre le thème par défaut de l'utilisateur,
   commun à toutes ses applications (`POST usersmanager/theme` sans APPCOD),

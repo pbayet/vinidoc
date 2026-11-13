@@ -1,10 +1,17 @@
 import { Permission, Service, Subordinate } from "..";
-import { capitalizeFirstLetter } from "../../../shared/lib/utils/string.functions";
+import {
+  INTERNAL_EMAIL_DOMAIN,
+  getUserDirectPermission,
+  getUserEmail,
+  getUserFullName,
+  getUserMention,
+  getUserPosition,
+} from "@uvcdr/contracts";
 import { Application } from "./Application.class";
 import { Group } from "./Group.class";
 
 export class User {
-  readonly emailSuffix = "@union-vignerons.com";
+  readonly emailSuffix = INTERNAL_EMAIL_DOMAIN;
 
   constructor(
     public USRID: number = 0,
@@ -72,9 +79,7 @@ export class User {
     error: boolean;
     errorMessage: string;
   } {
-    const email = this.ISEXT
-      ? this.EMAIL.trim()
-      : this.EMAIL.trim().replace(/@.*/, "") + this.emailSuffix;
+    const email = getUserEmail(this);
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return {
@@ -114,43 +119,29 @@ export class User {
     };
   }
 
+  /** « Prénom NOM » (cf. getUserFullName de @uvcdr/contracts). */
   getFullName(): string {
-    // Capitaliser les prénoms et noms
-    const firstName = capitalizeFirstLetter(this.FSTNAM.trim());
-    const lastName = this.LSTNAM.trim().toLocaleUpperCase();
-
-    // Retourner la mention formatée
-    return `${firstName} ${lastName}`;
+    return getUserFullName(this);
   }
 
+  /** « NOM Prénom ». */
   getFullNameReverse(): string {
-    // Capitaliser les prénoms et noms
-    const firstName = capitalizeFirstLetter(this.FSTNAM.trim());
-    const lastName = this.LSTNAM.trim().toLocaleUpperCase();
-
-    // Retourner la mention formatée
-    return `${lastName} ${firstName}`;
+    return getUserFullName(this, true);
   }
 
-  // Fonction pour obtenir la mention d'utilisateur
+  /** Mention « @PrénomNom ». */
   getMention(): string {
-    // Capitaliser les prénoms et noms
-    const firstName = capitalizeFirstLetter(this.FSTNAM.trim());
-    const lastName = capitalizeFirstLetter(this.LSTNAM.trim());
-
-    // Retourner la mention formatée
-    return `@${firstName}${lastName}`;
+    return getUserMention(this);
   }
 
+  /** Permission attribuée directement (hors groupes) dans une application. */
   getPermissionApplication(APPCOD: string): Permission | undefined | null {
-    return this.PERMISSIONS.find(
-      (p) => p.APPCOD === APPCOD && !p.PERMISSION?.BYGRP
-    )?.PERMISSION;
+    return getUserDirectPermission(this, APPCOD);
   }
 
+  /** Premier poste du service de l'utilisateur. */
   get position() {
-    if (this.SERVICE?.POSITIONS && this.SERVICE?.POSITIONS.length)
-      return this.SERVICE?.POSITIONS[0];
+    return getUserPosition(this);
   }
 
   /**
@@ -161,9 +152,7 @@ export class User {
    * domaine `emailSuffix` étant implicite.
    */
   get emailAddress(): string {
-    return this.ISEXT
-      ? this.EMAIL.trim()
-      : this.EMAIL.trim().replace(/@.*/, "") + this.emailSuffix;
+    return getUserEmail(this);
   }
 
   /**

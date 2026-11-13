@@ -8,7 +8,7 @@ import {
   type SelectOption,
 } from "@uvcdr/custom-form-system";
 import { PageLayout } from "@uvcdr/app-shell";
-import { useWebSocket } from "../../../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent } from "@uvcdr/realtime";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";
 import StatusBadge from "../ui/StatusBadge";
@@ -143,12 +143,17 @@ const SheetsList: React.FC<SheetsListProps> = ({
     }
   };
   const hasFilters = !!(debouncedSearch || color || millesime);
-  useWebSocket("vinidoc.sheet.created", refresh);
-  useWebSocket("vinidoc.sheet.updated", refresh);
-  useWebSocket("vinidoc.sheet.submitted", refresh);
-  useWebSocket("vinidoc.sheet.validated", refresh);
-  useWebSocket("vinidoc.sheet.rejected", refresh);
-  useWebSocket("vinidoc.sheet.deleted", refresh);
+  useRealtimeEvent(
+    [
+      "vinidoc.sheet.created",
+      "vinidoc.sheet.updated",
+      "vinidoc.sheet.submitted",
+      "vinidoc.sheet.validated",
+      "vinidoc.sheet.rejected",
+      "vinidoc.sheet.deleted",
+    ],
+    refresh,
+  );
 
   const colorOptions: SelectOption[] = colors.map((c) => ({
     type: "option",

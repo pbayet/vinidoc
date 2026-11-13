@@ -1,4 +1,5 @@
 import { Permission } from "..";
+import { getGroupPermission } from "@uvcdr/contracts";
 import { Application } from "./Application.class";
 
 export class Group {
@@ -65,10 +66,8 @@ export class Group {
     return this.PERMISSIONS.find((p) => p.APPNAM === APPNAM)?.PERMISSION;
   }
 
+  /** Permission du groupe dans une application (cf. getGroupPermission de @uvcdr/contracts). */
   getHighestPermission(APPCOD: string): Permission | undefined {
-    const app = this.PERMISSIONS.find((p) => p.APPCOD === APPCOD);
-    if (!app) return undefined;
-
-    return app.PERMISSION as Permission;
+    return getGroupPermission(this, APPCOD) ?? undefined;
   }
 }

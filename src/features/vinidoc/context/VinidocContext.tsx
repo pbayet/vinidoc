@@ -8,7 +8,8 @@ import React, {
 } from "react";
 import { useAuth } from "@uvcdr/api-auth-system";
 import { useVinidocApi } from "../api/useVinidocApi";
-import { useWebSocket } from "../../../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent } from "@uvcdr/realtime";
+import { useQuery, useQueryClient } from "@uvcdr/data-query";
 import type {
   Color,
   Language,
@@ -25,6 +26,9 @@ import type {
 // le nombre de fiches en attente de validation (badge de la Nav).
 // Les droits viennent de l'API (services configurés côté serveur) : ce sont
 // eux qui pilotent l'accès aux pages et l'affichage des actions.
+
+/** Clé de cache (@uvcdr/data-query) du nombre de fiches à valider. */
+const PENDING_COUNT_KEY = ["vinidoc/pending-count"] as const;
 
 const NO_RIGHTS: Rights = { EDIT: false, VALIDATE: false, TEMPLATES: false, PARAMS: false, GENERATE: false };
 
@@ -50,6 +54,7 @@ const VinidocContext = createContext<VinidocContextValue | null>(null);
 export const VinidocProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const api = useVinidocApi();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -58,7 +63,6 @@ export const VinidocProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [defaultLng, setDefaultLng] = useState("fr");
   const [colors, setColors] = useState<Color[]>([]);
   const [mergeFields, setMergeFields] = useState<MergeFields | null>(null);
-  const [pendingCount, setPendingCount] = useState(0);
 
   const reloadMergeFields = useCallback(async () => {
     try {
@@ -68,14 +72,24 @@ export const VinidocProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [api]);
 
-  const reloadPendingCount = useCallback(async () => {
-    try {
+  // Fiches à valider (pastille de la Nav) : chargées par @uvcdr/data-query
+  // une fois /me chargé (comme avant), puis rechargées par
+  // reloadPendingCount (évènements temps réel, actions de SheetEditor).
+  // Non bloquant : en cas d'erreur, la dernière valeur connue reste affichée.
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: PENDING_COUNT_KEY,
+    queryFn: async () => {
       const list = await api.listSheets({ STATUS: "SUBMITTED", PAGESIZE: 1 }, { silentError: true });
-      setPendingCount(list.TOTAL);
-    } catch {
-      /* non bloquant */
-    }
-  }, [api]);
+      return list.TOTAL;
+    },
+    enabled: isAuthenticated && !loading && !error,
+    retry: false,
+  });
+
+  const reloadPendingCount = useCallback(
+    () => queryClient.invalidateQueries(PENDING_COUNT_KEY),
+    [queryClient],
+  );
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -86,14 +100,15 @@ export const VinidocProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setDefaultLng(me.DEFAULT_LNGCOD ?? me.LANGUAGES[0]?.LNGCOD ?? "fr");
       setColors(me.COLORS);
       setError(false);
-      await Promise.all([reloadMergeFields(), reloadPendingCount()]);
+      // Le nombre de fiches à valider suit (requête activée en fin de chargement).
+      await reloadMergeFields();
     } catch {
       setRights(NO_RIGHTS);
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [api, reloadMergeFields, reloadPendingCount]);
+  }, [api, reloadMergeFields]);
 
   useEffect(() => {
     if (isAuthenticated) void reload();
@@ -103,14 +118,24 @@ export const VinidocProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // actions des autres utilisateurs.
   const onSheetEvent = useCallback(() => void reloadPendingCount(), [reloadPendingCount]);
   const onTemplateEvent = useCallback(() => void reloadMergeFields(), [reloadMergeFields]);
-  useWebSocket("vinidoc.sheet.submitted", onSheetEvent);
-  useWebSocket("vinidoc.sheet.validated", onSheetEvent);
-  useWebSocket("vinidoc.sheet.rejected", onSheetEvent);
-  useWebSocket("vinidoc.sheet.updated", onSheetEvent);
-  useWebSocket("vinidoc.sheet.deleted", onSheetEvent);
-  useWebSocket("vinidoc.template.created", onTemplateEvent);
-  useWebSocket("vinidoc.template.updated", onTemplateEvent);
-  useWebSocket("vinidoc.template.deleted", onTemplateEvent);
+  useRealtimeEvent(
+    [
+      "vinidoc.sheet.submitted",
+      "vinidoc.sheet.validated",
+      "vinidoc.sheet.rejected",
+      "vinidoc.sheet.updated",
+      "vinidoc.sheet.deleted",
+    ],
+    onSheetEvent,
+  );
+  useRealtimeEvent(
+    [
+      "vinidoc.template.created",
+      "vinidoc.template.updated",
+      "vinidoc.template.deleted",
+    ],
+    onTemplateEvent,
+  );
 
   const value = useMemo<VinidocContextValue>(
     () => ({

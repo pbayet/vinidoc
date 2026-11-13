@@ -1,4 +1,4 @@
-import { parseCsvTable } from "../../../shared/lib/utils/csv.functions";
+import { parseCsvTable } from "@uvcdr/utils";
 import type { VinidocApi } from "../api/useVinidocApi";
 import {
   TRANSLATION_FIELDS,

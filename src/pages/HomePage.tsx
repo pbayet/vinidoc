@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageLayout } from "@uvcdr/app-shell";
-import { useWebSocket } from "../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent } from "@uvcdr/realtime";
 import { useVinidocApi } from "../features/vinidoc/api/useVinidocApi";
 import GenerationForm from "../features/vinidoc/generation/GenerationForm";
 import GenerationHistory from "../features/vinidoc/generation/GenerationHistory";
@@ -76,15 +76,20 @@ const HomePage: React.FC = () => {
 
   const refreshLists = useCallback(() => void loadLists(), [loadLists]);
   // Statut / contenu des vins (validé ou non, saisie en cours) et modèles.
-  useWebSocket("vinidoc.sheet.created", refreshLists);
-  useWebSocket("vinidoc.sheet.updated", refreshLists);
-  useWebSocket("vinidoc.sheet.submitted", refreshLists);
-  useWebSocket("vinidoc.sheet.validated", refreshLists);
-  useWebSocket("vinidoc.sheet.rejected", refreshLists);
-  useWebSocket("vinidoc.sheet.deleted", refreshLists);
-  useWebSocket("vinidoc.template.created", refreshLists);
-  useWebSocket("vinidoc.template.updated", refreshLists);
-  useWebSocket("vinidoc.template.deleted", refreshLists);
+  useRealtimeEvent(
+    [
+      "vinidoc.sheet.created",
+      "vinidoc.sheet.updated",
+      "vinidoc.sheet.submitted",
+      "vinidoc.sheet.validated",
+      "vinidoc.sheet.rejected",
+      "vinidoc.sheet.deleted",
+      "vinidoc.template.created",
+      "vinidoc.template.updated",
+      "vinidoc.template.deleted",
+    ],
+    refreshLists,
+  );
 
   /* ───────────────────────── Vin sélectionné ───────────────────────── */
 

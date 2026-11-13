@@ -10,7 +10,7 @@ import {
   Icon,
   validators,
 } from "@uvcdr/custom-form-system";
-import { useWebSocket } from "../../../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent } from "@uvcdr/realtime";
 import { useVinidocApi } from "../../vinidoc/api/useVinidocApi";
 import { useVinidoc } from "../../vinidoc/context/VinidocContext";
 import { formatDateTime } from "../../vinidoc/lib/format";
@@ -142,7 +142,7 @@ const SettingsGeneral: React.FC = () => {
   useEffect(() => {
     void load();
   }, [load]);
-  useWebSocket("vinidoc.params.updated", useCallback(() => void load(), [load]));
+  useRealtimeEvent("vinidoc.params.updated", useCallback(() => void load(), [load]));
 
   const initial = useMemo<ParamValues>(
     () => Object.fromEntries((params ?? []).map((p) => [p.PRMKEY, p.PRMVAL])),

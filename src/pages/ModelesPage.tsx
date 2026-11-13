@@ -8,7 +8,7 @@ import {
   CustomFormSection,
 } from "@uvcdr/custom-form-system";
 import { PageLayout } from "@uvcdr/app-shell";
-import { useWebSocket } from "../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent } from "@uvcdr/realtime";
 import { useVinidocApi } from "../features/vinidoc/api/useVinidocApi";
 import { useVinidoc } from "../features/vinidoc/context/VinidocContext";
 import TemplateImportModal from "../features/vinidoc/templates/TemplateImportModal";
@@ -90,9 +90,14 @@ const ModelesPage: React.FC = () => {
   }, [load]);
 
   const refresh = useCallback(() => void load(), [load]);
-  useWebSocket("vinidoc.template.created", refresh);
-  useWebSocket("vinidoc.template.updated", refresh);
-  useWebSocket("vinidoc.template.deleted", refresh);
+  useRealtimeEvent(
+    [
+      "vinidoc.template.created",
+      "vinidoc.template.updated",
+      "vinidoc.template.deleted",
+    ],
+    refresh,
+  );
 
   if (editId != null && (!Number.isInteger(editId) || editId <= 0))
     return <Navigate to="/modeles" replace />;

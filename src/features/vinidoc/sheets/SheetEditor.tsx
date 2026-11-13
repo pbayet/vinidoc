@@ -14,10 +14,7 @@ import {
 } from "@uvcdr/custom-form-system";
 import { Modal, ModalBody } from "@uvcdr/modal";
 import { useConfirm } from "@uvcdr/confirm-notify-system";
-import {
-  useWebSocket,
-  type WsMessage,
-} from "../../../shared/lib/hooks/useWebSocket";
+import { useRealtimeEvent, type RealtimeMessage } from "@uvcdr/realtime";
 import { useVinidocApi } from "../api/useVinidocApi";
 import { useVinidoc } from "../context/VinidocContext";
 import StatusBadge from "../ui/StatusBadge";
@@ -141,15 +138,20 @@ const SheetEditor: React.FC<SheetEditorProps> = ({ SHTID, onClose }) => {
   // Modification par un autre utilisateur : on prévient au lieu d'écraser
   // les brouillons en cours.
   const onRemote = useCallback(
-    (msg: WsMessage<{ SHTID?: number }>) => {
+    (msg: RealtimeMessage<{ SHTID?: number }>) => {
       if (msg.payload?.SHTID === SHTID) setRemoteChange(true);
     },
     [SHTID],
   );
-  useWebSocket("vinidoc.sheet.updated", onRemote);
-  useWebSocket("vinidoc.sheet.submitted", onRemote);
-  useWebSocket("vinidoc.sheet.validated", onRemote);
-  useWebSocket("vinidoc.sheet.rejected", onRemote);
+  useRealtimeEvent(
+    [
+      "vinidoc.sheet.updated",
+      "vinidoc.sheet.submitted",
+      "vinidoc.sheet.validated",
+      "vinidoc.sheet.rejected",
+    ],
+    onRemote,
+  );
 
   /* ───────────────────────── États dérivés ───────────────────────── */
 

@@ -6,7 +6,7 @@
 // d'erreurs...), mais l'implémentation vient désormais du package
 // `@uvcdr/api-auth-system`. On y ajoute uniquement ce que le package ne
 // couvre pas encore : `fileDeletings` (suppression de fichiers déclenchée
-// après la requête principale).
+// après la requête principale, via @uvcdr/attachments).
 
 import {
   apiRequest as packageApiRequest,
@@ -26,7 +26,7 @@ import type {
   FileUploadSpec,
   FilesParam,
 } from "@uvcdr/api-auth-system";
-import { DeletedFilesMeta } from "../../entities/attachment/Attachment.class";
+import { deleteAttachments, type AttachmentToDelete } from "@uvcdr/attachments";
 import { ConfirmOptions } from "@uvcdr/confirm-notify-system";
 
 export { apiRequestAll, typed, isApiError, isApiResult };
@@ -60,15 +60,9 @@ export type ConfirmSpec = PackageConfirmSpec<ConfirmOptions>;
 // FILE DELETIONS (non couvert par le package)
 // -----------------------------------------
 
-type Primitive = string | number | boolean;
-
 export interface FileDeletionSpec {
-  /** Fichiers à supprimer */
-  files: DeletedFilesMeta[];
-  /** Endpoint de suppression. Défaut : "files/delete" */
-  endpoint?: string;
-  /** Params multipart de la suppression (metas…) */
-  params?: Record<string, Primitive | boolean>;
+  /** Pièces jointes à supprimer (ligne ATTACHMENTS, FILECODE ou `metas`). */
+  files: AttachmentToDelete[];
 }
 
 export type RequestOptions<R = unknown> = PackageRequestOptions<
@@ -77,11 +71,10 @@ export type RequestOptions<R = unknown> = PackageRequestOptions<
 > & {
   /**
    * Suppressions de fichiers à déclencher APRÈS la requête principale (si succès).
-   * Chaque `FileDeletionSpec` est envoyé en multipart vers son `endpoint` (défaut "files/delete").
-   * Toutes les suppressions sont lancées en parallèle une fois la requête principale terminée.
-   *
-   * Fonctionnalité maison, non portée dans `@uvcdr/api-auth-system` : on
-   * enchaîne ici un appel `apiRequest` supplémentaire par groupe de fichiers.
+   * Chaque `FileDeletionSpec` est envoyé à `files/delete` (`deleteAttachments`
+   * de @uvcdr/attachments), en parallèle, une fois la requête principale
+   * terminée. Rien n'est supprimé si la requête principale a été annulée
+   * (confirmation refusée).
    */
   fileDeletings?: FileDeletionSpec[];
 };
@@ -112,25 +105,14 @@ export const apiRequest = async <R = unknown,>({
   setLoading?.(true);
   try {
     const result = await packageApiRequest<R, ConfirmOptions>({ ...rest });
+    if (result.cancelled) return result;
 
     await Promise.all(
-      pending.map(
-        ({
-          files: deleteFiles,
-          endpoint: upEndpoint = "files/delete",
-          params: upParams,
-        }) =>
-          packageApiRequest({
-            endpoint: upEndpoint,
-            method: "DELETE",
-            params: {
-              ...(upParams as Record<string, Primitive>),
-              metas: JSON.stringify(deleteFiles),
-            },
-            token: rest.token,
-            isMultipart: true,
-            silentError: rest.silentError,
-          }),
+      pending.map(({ files }) =>
+        deleteAttachments(files, {
+          token: rest.token,
+          silentError: rest.silentError,
+        }),
       ),
     );
 
